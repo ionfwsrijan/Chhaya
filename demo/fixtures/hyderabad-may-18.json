@@ -1,0 +1,108 @@
+{
+  "hyderabad-miyapur-site-b": [
+    {
+      "time": "2026-05-18T06:00:00",
+      "temperature_2m": 33.5,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 0.0,
+      "cloud_cover": 50.0
+    },
+    {
+      "time": "2026-05-18T07:00:00",
+      "temperature_2m": 34.5,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 245.9,
+      "cloud_cover": 37.1
+    },
+    {
+      "time": "2026-05-18T08:00:00",
+      "temperature_2m": 35.7,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 475.0,
+      "cloud_cover": 25.0
+    },
+    {
+      "time": "2026-05-18T09:00:00",
+      "temperature_2m": 37.0,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 671.8,
+      "cloud_cover": 14.6
+    },
+    {
+      "time": "2026-05-18T10:00:00",
+      "temperature_2m": 38.3,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 822.7,
+      "cloud_cover": 6.7
+    },
+    {
+      "time": "2026-05-18T11:00:00",
+      "temperature_2m": 39.5,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 917.6,
+      "cloud_cover": 1.7
+    },
+    {
+      "time": "2026-05-18T12:00:00",
+      "temperature_2m": 40.5,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 950.0,
+      "cloud_cover": 0.0
+    },
+    {
+      "time": "2026-05-18T13:00:00",
+      "temperature_2m": 41.3,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 917.6,
+      "cloud_cover": 1.7
+    },
+    {
+      "time": "2026-05-18T14:00:00",
+      "temperature_2m": 41.8,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 822.7,
+      "cloud_cover": 6.7
+    },
+    {
+      "time": "2026-05-18T15:00:00",
+      "temperature_2m": 42.0,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 671.8,
+      "cloud_cover": 14.6
+    },
+    {
+      "time": "2026-05-18T16:00:00",
+      "temperature_2m": 41.8,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 475.0,
+      "cloud_cover": 25.0
+    },
+    {
+      "time": "2026-05-18T17:00:00",
+      "temperature_2m": 41.3,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 245.9,
+      "cloud_cover": 37.1
+    },
+    {
+      "time": "2026-05-18T18:00:00",
+      "temperature_2m": 40.5,
+      "relative_humidity_2m": 40.0,
+      "wind_speed_10m": 1.5,
+      "shortwave_radiation": 0.0,
+      "cloud_cover": 50.0
+    }
+  ]
+}
