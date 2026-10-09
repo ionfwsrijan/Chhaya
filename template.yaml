@@ -1,0 +1,215 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  Chhaya — site-level heat action plan for outdoor workers.
+  Scheduled triage on EventBridge Scheduler records each hour against a
+  single-table DynamoDB store and starts an escalation clock. A second
+  schedule notifies the site owner through SNS when a Stop-band proposal goes
+  unanswered. The same FastAPI console served locally is served here by
+  Lambda, through API Gateway, via Mangum.
+
+Parameters:
+  BedrockModelId:
+    Type: String
+    Default: anthropic.claude-3-haiku-20240307-v1:0
+    Description: Amazon Bedrock model used to draft supervisor-facing reasoning.
+  SiteOwnerPhone:
+    Type: String
+    Default: ""
+    Description: >-
+      E.164 phone number for SMS escalation alerts. Leave empty to skip the
+      SMS subscription and rely on the console and email subscription.
+  SiteOwnerEmail:
+    Type: String
+    Default: ""
+    Description: Email endpoint for escalation alerts. Leave empty to skip email.
+
+Conditions:
+  EnableSms: !Not [!Equals [!Ref SiteOwnerPhone, ""]]
+  EnableEmail: !Not [!Equals [!Ref SiteOwnerEmail, ""]]
+
+Globals:
+  Function:
+    Runtime: python3.12
+    Architectures: ["arm64"]
+    Timeout: 30
+    MemorySize: 512
+    Handler: "unused"
+    Tracing: Active
+    Environment:
+      Variables:
+        CHHAYA_MODE: aws
+        CHHAYA_SOURCE: openmeteo
+        CHHAYA_AGENT: bedrock
+        CHHAYA_NOTIFIER: sns
+        CHHAYA_BEDROCK_MODEL_ID: !Ref BedrockModelId
+        CHHAYA_DYNAMO_TABLE: !Ref HeatTable
+        CHHAYA_SNS_TOPIC_ARN: !Ref AlertsTopic
+
+Resources:
+  # --- single-table store ---------------------------------------------
+  HeatTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: chhaya-heat
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: pk
+          AttributeType: S
+        - AttributeName: sk
+          AttributeType: S
+        - AttributeName: gsi1pk
+          AttributeType: S
+        - AttributeName: gsi1sk
+          AttributeType: S
+      KeySchema:
+        - AttributeName: pk
+          KeyType: HASH
+        - AttributeName: sk
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: gsi1
+          KeySchema:
+            - AttributeName: gsi1pk
+              KeyType: HASH
+            - AttributeName: gsi1sk
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+
+  # --- notifications --------------------------------------------------
+  AlertsTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: chhaya-heat-alerts
+      DisplayName: Chhaya heat alerts
+      Subscription:
+        - !If
+          - EnableSms
+          - Protocol: sms
+            Endpoint: !Ref SiteOwnerPhone
+          - !Ref AWS::NoValue
+        - !If
+          - EnableEmail
+          - Protocol: email
+            Endpoint: !Ref SiteOwnerEmail
+          - !Ref AWS::NoValue
+
+  # --- least-privilege roles (the read-only agent / write-only notifier) --
+  AgentPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: BedrockReadReasoning
+            Effect: Allow
+            Action: ["bedrock:InvokeModel"]
+            Resource: !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:foundation-model/*"
+          - Sid: ReadStore
+            Effect: Allow
+            Action: ["dynamodb:GetItem", "dynamodb:Query"]
+            Resource:
+              - !GetAtt HeatTable.Arn
+              - !Sub "${HeatTable.Arn}/index/gsi1"
+
+  NotifierPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: PublishAlerts
+            Effect: Allow
+            Action: ["sns:Publish"]
+            Resource: !Ref AlertsTopic
+
+  WriteStorePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: WriteStore
+            Effect: Allow
+            Action:
+              - "dynamodb:PutItem"
+              - "dynamodb:DeleteItem"
+              - "dynamodb:BatchWriteItem"
+            Resource:
+              - !GetAtt HeatTable.Arn
+              - !Sub "${HeatTable.Arn}/index/gsi1"
+
+  # --- compute -------------------------------------------------------
+  ApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: chhaya.handlers.api.handler
+      Policies:
+        - !GetAtt AgentPolicy.PolicyArn
+        - !GetAtt NotifierPolicy.PolicyArn
+        - !GetAtt WriteStorePolicy.PolicyArn
+      Events:
+        Console:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref ConsoleApi
+            Path: /{proxy+}
+            Method: ANY
+            PayloadFormatVersion: "2.0"
+      Environment:
+        Variables:
+          CHHAYA_AGENT: bedrock
+
+  ConsoleApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      StageName: prod
+
+  TriageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: chhaya.handlers.triage.handler
+      Policies:
+        - !GetAtt AgentPolicy.PolicyArn
+        - !GetAtt WriteStorePolicy.PolicyArn
+      Events:
+        EveryFifteenMinutes:
+          Type: Schedule
+          Properties:
+            Schedule: "rate(15 minutes)"
+            Name: chhaya-scheduled-triage
+            Description: Record the current hour and start the escalation clock
+
+  EscalationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: .
+      Handler: chhaya.handlers.escalation.handler
+      Policies:
+        - !GetAtt NotifierPolicy.PolicyArn
+        - !GetAtt WriteStorePolicy.PolicyArn
+      Events:
+        EveryFiveMinutes:
+          Type: Schedule
+          Properties:
+            Schedule: "rate(5 minutes)"
+            Name: chhaya-escalation-clock
+            Description: Notify when a Stop-band proposal goes unanswered
+
+Outputs:
+  ConsoleUrl:
+    Description: The live console URL
+    Value: !Sub "https://${ConsoleApi}.execute-api.${AWS::Region}.amazonaws.com/prod/"
+  HeatTableName:
+    Description: Single-table store
+    Value: !Ref HeatTable
+  AlertsTopicArn:
+    Description: SNS topic for escalation alerts
+    Value: !Ref AlertsTopic
