@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chhaya — heat action console</title>
+<style>
+  :root {
+    --bg: #0e1116;
+    --panel: #161b22;
+    --panel-2: #1c232d;
+    --line: #2a3441;
+    --ink: #e6edf3;
+    --muted: #8b98a9;
+    --normal: #2ea043;
+    --caution: #d29922;
+    --stop: #da3633;
+    --accent: #e8590c;
+    --mono: "Cascadia Code", "Consolas", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 15px; line-height: 1.45;
+  }
+  header {
+    padding: 18px 24px; border-bottom: 1px solid var(--line);
+    display: flex; flex-wrap: wrap; gap: 14px; align-items: baseline;
+    background: linear-gradient(180deg, #1a1208, var(--bg));
+  }
+  header h1 { margin: 0; font-size: 22px; letter-spacing: .3px; }
+  header h1 .deva { color: var(--accent); }
+  header .sub { color: var(--muted); font-size: 13px; }
+  .badges { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
+  .badge {
+    font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 999px;
+    border: 1px solid var(--line); color: var(--muted);
+  }
+  .badge.live { color: #7ee787; border-color: #2ea04355; background: #2ea0431a; }
+  .badge.dry { color: #e3b341; border-color: #d2992255; background: #d299221a; }
+  main {
+    display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 18px; padding: 20px 24px; max-width: 1400px; margin: 0 auto;
+  }
+  @media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 18px; margin-bottom: 18px;
+  }
+  .card h2 { margin: 0 0 12px; font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
+  input, select, button, textarea {
+    font: inherit; background: var(--panel-2); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
+  }
+  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+  button {
+    cursor: pointer; background: var(--accent); border-color: var(--accent);
+    color: #fff; font-weight: 600;
+  }
+  button.ghost { background: transparent; color: var(--ink); border-color: var(--line); font-weight: 500; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .band {
+    display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px;
+    border-radius: 999px; font-weight: 700; font-size: 13px; text-transform: uppercase;
+  }
+  .band.normal { background: #2ea04322; color: var(--normal); }
+  .band.caution { background: #d2992222; color: var(--caution); }
+  .band.stop { background: #da363322; color: var(--stop); }
+  .verdict { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+  .verdict .reason { color: var(--muted); font-size: 13px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { color: var(--muted); font-weight: 500; }
+  td.num, th.num { text-align: right; font-family: var(--mono); }
+  .finding { border-left: 3px solid var(--line); padding: 8px 12px; margin: 8px 0; background: var(--panel-2); border-radius: 0 8px 8px 0; }
+  .finding.decider { border-left-color: var(--accent); }
+  .finding .engine { font-family: var(--mono); font-size: 12px; color: var(--accent); }
+  .finding .cite { color: var(--muted); font-size: 12px; }
+  .prop { border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 12px; background: var(--panel-2); }
+  .prop .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .prop .label { font-weight: 600; }
+  .phrase {
+    font-family: var(--mono); background: #0b0e13; border: 1px dashed var(--line);
+    padding: 5px 9px; border-radius: 6px; color: #7ee787; user-select: all; font-size: 13px;
+  }
+  .prop input { width: 100%; margin: 8px 0 6px; font-family: var(--mono); }
+  .hint { color: var(--muted); font-size: 12px; }
+  .muted { color: var(--muted); }
+  .mono { font-family: var(--mono); }
+  .pill { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--line); }
+  .out-dry_run { color: #e3b341; }
+  .out-denied { color: var(--stop); }
+  .out-verified, .out-executed { color: var(--normal); }
+  .empty { color: var(--muted); font-size: 13px; font-style: italic; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; }
+  .kv .k { color: var(--muted); }
+  .banner {
+    display: none; margin-bottom: 12px; padding: 10px 12px; border-radius: 8px;
+    background: #da36331a; border: 1px solid #da363355; color: #ffb4b0; font-size: 13px;
+  }
+  .ledger-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .stat { background: var(--panel-2); border-radius: 8px; padding: 10px 12px; }
+  .stat .n { font-size: 22px; font-weight: 700; font-family: var(--mono); }
+  .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .audit { max-height: 320px; overflow: auto; }
+  code { font-family: var(--mono); font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="deva">छाया</span> Chhaya</h1>
+  <div class="sub">Site-level heat action plans for outdoor workers — two published engines, stricter-wins, human consent as an exact phrase.</div>
+  <div class="badges">
+    <span class="badge" id="badge-mode">mode …</span>
+    <span class="badge" id="badge-site">site …</span>
+    <span class="badge" id="badge-policy">policy …</span>
+  </div>
+</header>
+
+<main>
+  <section>
+    <div class="card">
+      <h2>1 · Screen an hour</h2>
+      <div class="row">
+        <div style="flex:1 1 220px">
+          <label for="when">Hour (local)</label>
+          <input type="datetime-local" id="when" step="3600" />
+        </div>
+        <div>
+          <label for="workload">Workload</label>
+          <select id="workload">
+            <option value="light">light</option>
+            <option value="moderate">moderate</option>
+            <option value="heavy" selected>heavy</option>
+            <option value="very_heavy">very_heavy</option>
+          </select>
+        </div>
+        <div style="width:110px">
+          <label for="workers">Crew size</label>
+          <input type="number" id="workers" value="35" min="1" max="10000" />
+        </div>
+        <div>
+          <label for="acclim">Acclimatization</label>
+          <select id="acclim">
+            <option value="unacclimatized" selected>unacclimatized</option>
+            <option value="acclimatized">acclimatized</option>
+          </select>
+        </div>
+        <button id="screen-btn">Run screen</button>
+        <button class="ghost" id="preset-afternoon">Preset: 15:00</button>
+      </div>
+      <div class="banner" id="error-banner"></div>
+    </div>
+
+    <div class="card" id="result-card" style="display:none">
+      <h2>2 · Verdict</h2>
+      <div class="verdict">
+        <span class="band" id="verdict-band">—</span>
+        <span class="reason" id="verdict-reason"></span>
+      </div>
+      <table>
+        <tr><th>Air</th><th class="num">RH</th><th class="num">Wind</th><th class="num">WBGT</th><th class="num">Heat index</th></tr>
+        <tr>
+          <td class="num" id="m-air">—</td><td class="num" id="m-rh">—</td>
+          <td class="num" id="m-wind">—</td><td class="num" id="m-wbgt">—</td>
+          <td class="num" id="m-hi">—</td>
+        </tr>
+      </table>
+      <div id="findings"></div>
+    </div>
+
+    <div class="card" id="proposals-card" style="display:none">
+      <h2>3 · Proposed actions <span class="hint" id="reasoning"></span></h2>
+      <div id="proposals"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="card">
+      <h2>Living state</h2>
+      <div class="ledger-grid">
+        <div class="stat"><div class="n" id="stat-observed">0</div><div class="l">hazardous worker‑hrs observed</div></div>
+        <div class="stat"><div class="n" id="stat-covered">0</div><div class="l">worker‑hrs covered by advisories</div></div>
+      </div>
+      <p class="hint" style="margin-bottom:0">
+        Covered is measured. “Avoided” is a counterfactual: <span id="stat-assumption" class="muted"></span>
+      </p>
+    </div>
+
+    <div class="card">
+      <h2>Standing advisories</h2>
+      <div id="advisories"></div>
+    </div>
+
+    <div class="card">
+      <h2>Audit trail</h2>
+      <div class="audit"><table><tbody id="records"></tbody></table></div>
+    </div>
+
+    <div class="card">
+      <h2>Escalation clock</h2>
+      <button class="ghost" id="escalation-btn">Check who has waited too long</button>
+      <div id="escalations" style="margin-top:10px"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const api = async (path, opts) => {
+  const res = await fetch(path, opts);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.detail || (res.status + " " + res.statusText));
+  return body;
+};
+const post = (path, body) =>
+  api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+
+let supervisor = { name: "Supervisor", roles: ["site_supervisor"] };
+
+function localInputValue(date) {
+  const p = (n) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:00`;
+}
+
+async function boot() {
+  const [config, policy] = await Promise.all([api("/api/config"), api("/api/policy")]);
+  $("badge-mode").textContent = "mode: " + config.mode + " · weather: " + config.weather_source;
+  $("badge-mode").className = "badge " + (config.mode === "aws" ? "live" : "");
+  $("badge-site").textContent = config.site_id;
+  $("badge-policy").textContent = "dry-run: " + config.dry_run + " · " + config.policy_fingerprint.slice(0, 10);
+  $("badge-policy").className = "badge " + (config.dry_run ? "dry" : "live");
+  if (policy.site && policy.site.supervisor) {
+    supervisor = { name: policy.site.supervisor.name, roles: policy.site.supervisor.roles };
+  }
+  updateClock();
+  await refreshState();
+}
+
+function updateClock() {
+  const now = new Date();
+  // default the screen to the hot afternoon of today
+  const afternoon = new Date(now); afternoon.setHours(15, 0, 0, 0);
+  if (!$("when").value) $("when").value = localInputValue(afternoon);
+}
+setInterval(() => {}, 60000);
+
+function bandClass(band) { return ["normal", "caution", "stop"].includes(band) ? band : ""; }
+
+function showError(message) {
+  const b = $("error-banner");
+  b.textContent = message;
+  b.style.display = "block";
+  setTimeout(() => { b.style.display = "none"; }, 6000);
+}
+
+async function screenHour() {
+  $("error-banner").style.display = "none";
+  const whenLocal = $("when").value;
+  const payload = {
+    when: new Date(whenLocal).toISOString(),
+    workload: $("workload").value,
+    acclimatization: $("acclim").value,
+    workers: Number($("workers").value),
+  };
+  let body;
+  try {
+    body = await post("/api/triage", payload);
+  } catch (e) { showError(e.message); return; }
+  renderTriage(body);
+  await refreshState();
+}
+
+function renderTriage(body) {
+  const t = body.triage, v = t.verdict, idx = t.indices;
+  $("result-card").style.display = "block";
+  $("verdict-band").textContent = v.label + " (" + v.band + ")";
+  $("verdict-band").className = "band " + bandClass(v.band);
+  $("verdict-reason").textContent = v.reason;
+  $("m-air").textContent = idx.air_c + " °C";
+  $("m-rh").textContent = idx.relative_humidity + " %";
+  $("m-wind").textContent = idx.wind_ms + " m/s";
+  $("m-wbgt").textContent = idx.wbgt_c + " °C";
+  $("m-hi").textContent = idx.heat_index_c + " °C";
+
+  $("findings").innerHTML = v.findings.map((f) => `
+    <div class="finding ${f.engine === v.deciding_engine ? "decider" : ""}">
+      <div><span class="engine">${f.engine}</span>
+        ${f.engine === v.deciding_engine ? ' <span class="pill">deciding</span>' : ""}
+        · <b>${f.band}</b>${f.margin_c === null ? "" : " · margin " + f.margin_c + " °C"}</div>
+      <div>${f.summary}</div>
+      <div class="cite">${f.detail}</div>
+      <div class="cite">Source: ${f.citation}</div>
+    </div>`).join("");
+
+  $("proposals-card").style.display = "block";
+  $("reasoning").textContent = "— " + body.reasoning;
+  const props = body.proposals;
+  if (!props.length) {
+    $("proposals").innerHTML = '<div class="empty">No action is proposed for this band. A quiet hour is a quiet console.</div>';
+    return;
+  }
+  $("proposals").innerHTML = props.map((p) => `
+    <div class="prop">
+      <div class="top">
+        <span class="label">${p.label}</span>
+        <span class="pill">${p.standing ? "standing" : "one-shot"} · verify: ${p.verify}${p.ttl_minutes ? " · ttl " + p.ttl_minutes + "m" : ""}</span>
+      </div>
+      <div class="hint">Type the exact phrase to approve (case-sensitive, no paraphrasing):</div>
+      <span class="phrase">${p.approval_phrase}</span>
+      <input id="approve-${p.token}" placeholder="type the phrase here" autocomplete="off" />
+      <button class="ghost" data-token="${p.token}">Approve</button>
+      <div class="hint" id="feedback-${p.token}"></div>
+    </div>`).join("");
+  $("proposals").querySelectorAll("button[data-token]").forEach((btn) =>
+    btn.addEventListener("click", () => approve(btn.dataset.token)));
+}
+
+async function approve(token) {
+  const input = $("approve-" + token);
+  const fb = $("feedback-" + token);
+  fb.textContent = "";
+  let body;
+  try {
+    body = await post("/api/approve", {
+      token, raw_message: input.value, approver_name: supervisor.name,
+      approver_roles: supervisor.roles, notifier_acknowledged: true,
+    });
+  } catch (e) { fb.innerHTML = '<span class="out-denied">' + e.message + "</span>"; return; }
+  const r = body.record;
+  const colour = "out-" + r.outcome;
+  const why = r.approval.phrase_matched ? "phrase matched" : "phrase not matched";
+  fb.innerHTML = `<span class="${colour}">→ ${r.outcome}</span> <span class="muted">(${why}; ${r.verification_outcome})</span>`;
+  await refreshState();
+}
+
+async function refreshState() {
+  let state;
+  try { state = await api("/api/state"); } catch (e) { return; }
+  const ledger = state.ledger;
+  $("stat-observed").textContent = ledger.hazardous_worker_hours_observed.toFixed(1);
+  $("stat-covered").textContent = ledger.hazardous_worker_hours_covered.toFixed(1);
+  $("stat-assumption").textContent = ledger.avoided_estimate_assumption;
+
+  const adv = state.advisories;
+  $("advisories").innerHTML = adv.length ? adv.map((a) => `
+    <div class="prop">
+      <div class="top">
+        <span class="label mono">${a.action_id}</span>
+        <span class="pill ${a.active ? "out-verified" : "out-denied"}">${a.active ? "ACTIVE" : (a.revoked ? "revoked" : "expired")}</span>
+      </div>
+      <div class="hint">issued ${a.issued_at} by ${a.issued_by} · expires ${a.expires_at}</div>
+      <div class="hint">${a.reason}</div>
+      ${a.revoked ? `<div class="hint">revoked by ${a.revoked_by}: ${a.revoke_reason}</div>`
+        : `<button class="ghost" data-revoke="${a.advisory_id}" style="margin-top:8px">Revoke</button>`}
+    </div>`).join("") : '<div class="empty">No advisories yet.</div>';
+  $("advisories").querySelectorAll("button[data-revoke]").forEach((btn) =>
+    btn.addEventListener("click", () => revoke(btn.dataset.revoke)));
+
+  const recs = state.records;
+  $("records").innerHTML = recs.length ? recs.map((r) => `
+    <tr>
+      <td><span class="pill out-${r.outcome}">${r.outcome}</span></td>
+      <td class="mono">${r.action_id}</td>
+      <td>${r.approver}<div class="hint">${(r.approver_roles || []).join(", ")}</div></td>
+      <td class="hint">${r.proposed_at}<br/>excerpt: “${(r.approval_excerpt || "").slice(0, 40)}”</td>
+      <td class="hint">${r.verification_detail}</td>
+    </tr>`).join("") : '<tr><td class="empty">No action records yet.</td></tr>';
+}
+
+async function revoke(id) {
+  const reason = prompt("Why is this advisory being revoked?");
+  if (!reason) return;
+  try {
+    await post("/api/revoke", { advisory_id: id, revoked_by: supervisor.name, reason });
+  } catch (e) { showError(e.message); }
+  await refreshState();
+}
+
+async function checkEscalations() {
+  const body = await post("/api/escalations/check", {});
+  const box = $("escalations");
+  if (!body.fired.length) {
+    box.innerHTML = '<div class="empty">Nobody has waited past the window. The clock is quiet.</div>';
+    return;
+  }
+  box.innerHTML = body.fired.map((f) => `
+    <div class="finding decider">
+      <div class="mono">${f.action_id} · waited ${f.waited_minutes} min</div>
+      <pre class="hint" style="white-space:pre-wrap;margin:6px 0 0">${f.message}</pre>
+    </div>`).join("");
+}
+
+$("screen-btn").addEventListener("click", screenHour);
+$("preset-afternoon").addEventListener("click", () => {
+  const d = new Date(); d.setHours(15, 0, 0, 0);
+  $("when").value = localInputValue(d);
+});
+$("escalation-btn").addEventListener("click", checkEscalations);
+boot();
+</script>
+</body>
+</html>
