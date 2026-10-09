@@ -6,399 +6,383 @@
 <title>Chhaya — heat action console</title>
 <style>
   :root {
-    --bg: #0e1116;
-    --panel: #161b22;
-    --panel-2: #1c232d;
-    --line: #2a3441;
-    --ink: #e6edf3;
-    --muted: #8b98a9;
-    --normal: #2ea043;
-    --caution: #d29922;
-    --stop: #da3633;
-    --accent: #e8590c;
-    --mono: "Cascadia Code", "Consolas", ui-monospace, monospace;
+    --bg: #121212;
+    --panel: #151515;
+    --panel-soft: #1b1b1b;
+    --line: #484848;
+    --line-soft: #2c2c2c;
+    --ink: #f0f0f0;
+    --muted: #777777;
+    --mono: "Cascadia Code", Consolas, ui-monospace, monospace;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    font-size: 15px; line-height: 1.45;
+    margin: 0; min-width: 320px; background: var(--bg); color: var(--ink);
+    font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: -.01em;
   }
-  header {
-    padding: 18px 24px; border-bottom: 1px solid var(--line);
-    display: flex; flex-wrap: wrap; gap: 14px; align-items: baseline;
-    background: linear-gradient(180deg, #1a1208, var(--bg));
+  button, input, select { font: inherit; }
+  button { cursor: pointer; }
+  .shell { max-width: 1125px; margin: 0 auto; padding: 34px 0 42px; }
+  .topbar {
+    height: 44px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: flex-start;
+    color: var(--muted); position: relative;
   }
-  header h1 { margin: 0; font-size: 22px; letter-spacing: .3px; }
-  header h1 .deva { color: var(--accent); }
-  header .sub { color: var(--muted); font-size: 13px; }
-  .badges { margin-left: auto; display: flex; gap: 8px; flex-wrap: wrap; }
-  .badge {
-    font-family: var(--mono); font-size: 11px; padding: 3px 8px; border-radius: 999px;
-    border: 1px solid var(--line); color: var(--muted);
-  }
-  .badge.live { color: #7ee787; border-color: #2ea04355; background: #2ea0431a; }
-  .badge.dry { color: #e3b341; border-color: #d2992255; background: #d299221a; }
-  main {
-    display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-    gap: 18px; padding: 20px 24px; max-width: 1400px; margin: 0 auto;
-  }
-  @media (max-width: 980px) { main { grid-template-columns: 1fr; } }
+  .brand-sm { font-size: 13px; color: var(--ink); }
+  .top-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+  .tag { font-family: var(--mono); font-size: 10px; border: 1px solid var(--line); padding: 3px 7px; color: var(--muted); }
+  .tag-live { color: #151515; background: var(--white); border-color: var(--white); }
+  .tag-dry { color: var(--white); border: 1px dashed var(--white); }
+  .dots { position: absolute; left: 0; bottom: -4px; display: flex; gap: 8px; }
+  .dots i { width: 3px; height: 3px; border-radius: 50%; background: var(--ink); display: block; }
+  .dots i:nth-child(2), .dots i:nth-child(3) { opacity: .55; }
+  .hero { display: flex; align-items: center; justify-content: space-between; margin: 32px 0 16px; }
+  h1 { font-size: 24px; line-height: 1; font-weight: 400; margin: 0; }
+  .hero-right { display: flex; align-items: baseline; gap: 17px; }
+  .clock { font-size: 23px; }
+  .clock-label { color: var(--muted); font-size: 10px; }
+  #error-banner { display: none; color: var(--white); border: 1px solid var(--white); padding: 10px; margin: 0 0 12px; }
+  .dashboard-grid { display: grid; grid-template-columns: 2.12fr 1fr 1fr; gap: 8px; }
   .card {
-    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-    padding: 18px; margin-bottom: 18px;
+    min-width: 0; border: 1px solid var(--line); border-radius: 11px; background: var(--panel);
+    padding: 10px; overflow: hidden;
   }
-  .card h2 { margin: 0 0 12px; font-size: 15px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); }
-  .row { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
-  label { font-size: 12px; color: var(--muted); display: block; margin-bottom: 4px; }
-  input, select, button, textarea {
-    font: inherit; background: var(--panel-2); color: var(--ink);
-    border: 1px solid var(--line); border-radius: 8px; padding: 9px 11px;
+  .card-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+  h2 { font-size: 22px; font-weight: 400; margin: 0; line-height: 1; }
+  .more { color: var(--ink); font-size: 20px; line-height: 10px; letter-spacing: 3px; }
+  .summary { grid-column: 1; min-height: 339px; }
+  .signal { width: 24px; height: 24px; border: 1px solid var(--ink); border-radius: 50%; display: grid; place-items: center; }
+  .signal::after { content: "◌"; font-size: 18px; }
+  .result-band { font-size: 16px; text-transform: uppercase; padding: 6px 0 10px; }
+  .band-normal { border: 1px solid var(--white); color: var(--white); padding: 4px 9px; }
+  .band-caution { border: 1px dashed var(--white); color: var(--white); padding: 4px 9px; }
+  .band-stop { background: var(--white); color: #151515; padding: 4px 9px; }
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 12px; }
+  .metric-label { color: var(--muted); margin-bottom: 8px; }
+  .dot-chart { height: 112px; display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(10, 1fr); gap: 4px; align-content: end; }
+  .dot-chart i { display: block; width: 4px; height: 4px; border-radius: 50%; border: 1px solid #696969; opacity: .55; }
+  .dot-chart i.on { background: var(--white); border-color: var(--white); opacity: 1; }
+  .metric-value { display: flex; align-items: baseline; gap: 9px; margin-top: 7px; }
+  .metric-value strong { font-size: 23px; font-weight: 400; }
+  .metric-value span { color: var(--muted); font-size: 11px; }
+  .metric-value em { font-style: normal; margin-left: auto; color: var(--ink); }
+  .geo { grid-column: 2; min-height: 339px; }
+  .detail-table { width: 100%; border-collapse: collapse; }
+  .detail-table td { border-top: 1px solid var(--line-soft); padding: 11px 4px; color: var(--muted); }
+  .detail-table td:first-child { color: var(--ink); }
+  .alerts { grid-column: 3; min-height: 339px; }
+  .alert {
+    border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px; min-height: 74px; margin-bottom: 4px;
+    color: var(--muted);
   }
-  input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
-  button {
-    cursor: pointer; background: var(--accent); border-color: var(--accent);
-    color: #fff; font-weight: 600;
-  }
-  button.ghost { background: transparent; color: var(--ink); border-color: var(--line); font-weight: 500; }
-  button:disabled { opacity: .5; cursor: not-allowed; }
-  .band {
-    display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px;
-    border-radius: 999px; font-weight: 700; font-size: 13px; text-transform: uppercase;
-  }
-  .band.normal { background: #2ea04322; color: var(--normal); }
-  .band.caution { background: #d2992222; color: var(--caution); }
-  .band.stop { background: #da363322; color: var(--stop); }
-  .verdict { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
-  .verdict .reason { color: var(--muted); font-size: 13px; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-  th { color: var(--muted); font-weight: 500; }
-  td.num, th.num { text-align: right; font-family: var(--mono); }
-  .finding { border-left: 3px solid var(--line); padding: 8px 12px; margin: 8px 0; background: var(--panel-2); border-radius: 0 8px 8px 0; }
-  .finding.decider { border-left-color: var(--accent); }
-  .finding .engine { font-family: var(--mono); font-size: 12px; color: var(--accent); }
-  .finding .cite { color: var(--muted); font-size: 12px; }
-  .prop { border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 12px; background: var(--panel-2); }
-  .prop .top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
-  .prop .label { font-weight: 600; }
-  .phrase {
-    font-family: var(--mono); background: #0b0e13; border: 1px dashed var(--line);
-    padding: 5px 9px; border-radius: 6px; color: #7ee787; user-select: all; font-size: 13px;
-  }
-  .prop input { width: 100%; margin: 8px 0 6px; font-family: var(--mono); }
-  .hint { color: var(--muted); font-size: 12px; }
-  .muted { color: var(--muted); }
+  .alert.active { background: var(--white); color: #151515; border-color: var(--white); min-height: 106px; }
+  .alert p { margin: 0 0 8px; line-height: 1.25; }
+  .alert .subtle { color: var(--muted); } .alert.active .subtle { color: #6c6c6c; }
+  .alert time { display: block; margin-top: 15px; }
+  .alert .ghost-btn { margin-top: 6px; }
+  .analytics { grid-column: 1; background: var(--panel); }
+  .analytics .card-title { margin-bottom: 5px; }
+  .analytics-top { display: flex; justify-content: space-between; color: var(--muted); margin-bottom: 10px; }
+  .finding { border-left: 1px solid var(--line-soft); padding: 9px 12px; margin-bottom: 6px; background: var(--panel-soft); }
+  .finding.deciding { border-left: 2px solid var(--white); }
+  .finding .deciding-tag { font-family: var(--mono); font-size: 9px; border: 1px solid var(--white); color: var(--white); padding: 1px 5px; }
+  .management { grid-column: 2; min-height: 184px; }
+  .ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .ledger-fig { border: 1px solid var(--line-soft); border-radius: 7px; padding: 12px; }
+  .ledger-fig strong { display: block; font-size: 26px; font-weight: 400; }
+  .ledger-fig span { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
+  .utility { grid-column: 3; border: 0; background: transparent; padding: 12px 0 0 100px; color: var(--muted); }
+  .utility button { display: block; color: var(--muted); background: transparent; border: 0; padding: 0 0 9px; text-align: left; }
+  .utility button:hover, .utility button:focus { color: var(--ink); }
+  .brand { margin-top: 55px; color: var(--white); font-size: 39px; letter-spacing: -3px; }
+  .brand-sm .deva { color: var(--white); }
+  .brand-meta { color: var(--muted); margin-top: 2px; }
+  .brand-meta span { float: right; color: var(--white); }
+  .operations { margin-top: 8px; border: 1px solid var(--line); border-radius: 11px; padding: 14px; background: var(--panel); }
+  .operations-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .operations-head h2 { font-size: 17px; }
+  .operation-form { display: grid; grid-template-columns: 1.35fr .8fr .6fr .9fr auto; gap: 8px; align-items: end; }
+  .operation-form label { color: var(--muted); display: block; margin-bottom: 5px; }
+  .operation-form input, .operation-form select { width: 100%; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 8px; }
+  .operation-result { margin-top: 12px; display: none; border-top: 1px solid var(--line-soft); padding-top: 12px; }
+  .operation-result.visible { display: block; }
+  .result-line { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+  .result-meta { color: var(--muted); }
+  .proposal-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin-top: 12px; }
+  .proposal { border: 1px solid var(--line-soft); border-radius: 7px; padding: 10px; }
+  .proposal h3 { margin: 0 0 5px; font-size: 13px; font-weight: 400; }
+  .proposal .phrase { color: var(--ink); font-family: var(--mono); font-size: 10px; display: block; margin: 8px 0; }
+  .proposal .feedback { color: var(--muted); margin-top: 7px; }
+  .outcome { color: var(--ink); }
+  .modal-input { background: transparent; border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 8px; width: 100%; margin: 8px 0; }
+  .action-btn { background: var(--white); color: #151515; border: 0; border-radius: 4px; padding: 8px 12px; }
+  .ghost-btn { background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 7px 10px; }
+  .empty { color: var(--muted); padding: 10px 0; }
+  .mute { color: var(--muted); }
   .mono { font-family: var(--mono); }
-  .pill { font-family: var(--mono); font-size: 11px; padding: 2px 7px; border-radius: 6px; border: 1px solid var(--line); }
-  .out-dry_run { color: #e3b341; }
-  .out-denied { color: var(--stop); }
-  .out-verified, .out-executed { color: var(--normal); }
-  .empty { color: var(--muted); font-size: 13px; font-style: italic; }
-  .kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; }
-  .kv .k { color: var(--muted); }
-  .banner {
-    display: none; margin-bottom: 12px; padding: 10px 12px; border-radius: 8px;
-    background: #da36331a; border: 1px solid #da363355; color: #ffb4b0; font-size: 13px;
+  .status { color: var(--muted); font-size: 11px; }
+  .full { grid-column: 1 / -1; }
+  .block { margin-top: 8px; border: 1px solid var(--line); border-radius: 11px; padding: 14px; background: var(--panel); }
+  .block .block-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+  .block .block-head h2 { font-size: 17px; }
+  @media (max-width: 900px) {
+    .shell { padding: 20px 16px; } .dashboard-grid { grid-template-columns: 1fr 1fr; }
+    .summary, .analytics { grid-column: 1 / -1; } .geo, .alerts, .management, .utility { grid-column: auto; }
+    .utility { padding-left: 10px; } .brand { margin-top: 25px; }
   }
-  .ledger-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .stat { background: var(--panel-2); border-radius: 8px; padding: 10px 12px; }
-  .stat .n { font-size: 22px; font-weight: 700; font-family: var(--mono); }
-  .stat .l { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
-  .audit { max-height: 320px; overflow: auto; }
-  code { font-family: var(--mono); font-size: 12px; }
+  @media (max-width: 600px) {
+    .topbar { height: auto; padding-bottom: 14px; } .top-actions { gap: 10px; }
+    .dots { display: none; } .dashboard-grid { grid-template-columns: 1fr; }
+    .summary, .analytics, .geo, .alerts, .management, .utility { grid-column: 1; }
+    .metrics { gap: 10px; } .metric-value strong { font-size: 20px; }
+    .operation-form { grid-template-columns: 1fr 1fr; } .operation-form button { grid-column: 1 / -1; }
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1><span class="deva">छाया</span> Chhaya</h1>
-  <div class="sub">Site-level heat action plans for outdoor workers — two published engines, stricter-wins, human consent as an exact phrase.</div>
-  <div class="badges">
-    <span class="badge" id="badge-mode">mode …</span>
-    <span class="badge" id="badge-site">site …</span>
-    <span class="badge" id="badge-policy">policy …</span>
+<div class="shell">
+  <header class="topbar">
+    <div class="brand-sm"><span class="deva">छाया</span> Chhaya</div>
+    <div class="top-actions">
+      <span class="tag" id="tag-mode">mode …</span>
+      <span class="tag" id="tag-site">site …</span>
+      <span class="tag" id="tag-policy">dry-run …</span>
+    </div>
+    <div class="dots"><i></i><i></i><i></i></div>
+  </header>
+
+  <div class="hero">
+    <h1>Heat action console <span class="status">↗</span></h1>
+    <div class="hero-right"><span class="clock" id="clock">12:00 PM</span><span class="clock-label">Local time</span></div>
   </div>
-</header>
+  <div id="error-banner"></div>
 
-<main>
-  <section>
-    <div class="card">
-      <h2>1 · Screen an hour</h2>
-      <div class="row">
-        <div style="flex:1 1 220px">
-          <label for="when">Hour (local)</label>
-          <input type="datetime-local" id="when" step="3600" />
-        </div>
-        <div>
-          <label for="workload">Workload</label>
-          <select id="workload">
-            <option value="light">light</option>
-            <option value="moderate">moderate</option>
-            <option value="heavy" selected>heavy</option>
-            <option value="very_heavy">very_heavy</option>
-          </select>
-        </div>
-        <div style="width:110px">
-          <label for="workers">Crew size</label>
-          <input type="number" id="workers" value="35" min="1" max="10000" />
-        </div>
-        <div>
-          <label for="acclim">Acclimatization</label>
-          <select id="acclim">
-            <option value="unacclimatized" selected>unacclimatized</option>
-            <option value="acclimatized">acclimatized</option>
-          </select>
-        </div>
-        <button id="screen-btn">Run screen</button>
-        <button class="ghost" id="preset-afternoon">Preset: 15:00</button>
+  <main class="dashboard-grid">
+    <section class="card summary">
+      <div class="card-title"><h2>Verdict</h2><span class="signal" aria-label="System connected"></span></div>
+      <div class="result-band" id="result-band">No screen run yet</div>
+      <div class="mute" id="result-reason">Screen an hour below to get a band from both published engines.</div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-label">Wet-bulb globe temperature</div><div class="dot-chart" id="wbgt-chart"></div><div class="metric-value"><strong id="m-wbgt">—</strong><span>°C</span><em>WBGT</em></div></div>
+        <div class="metric"><div class="metric-label">Heat index</div><div class="dot-chart" id="hi-chart"></div><div class="metric-value"><strong id="m-hi">—</strong><span>°C</span><em>HI</em></div></div>
+        <div class="metric"><div class="metric-label">Air temperature</div><div class="dot-chart" id="air-chart"></div><div class="metric-value"><strong id="m-air">—</strong><span>°C</span><em>T</em></div></div>
+        <div class="metric"><div class="metric-label">Relative humidity</div><div class="dot-chart" id="rh-chart"></div><div class="metric-value"><strong id="m-rh">—</strong><span>%</span><em>RH</em></div></div>
+        <div class="metric"><div class="metric-label">Wind speed</div><div class="dot-chart" id="wind-chart"></div><div class="metric-value"><strong id="m-wind">—</strong><span>m/s</span><em>WS</em></div></div>
       </div>
-      <div class="banner" id="error-banner"></div>
-    </div>
+    </section>
 
-    <div class="card" id="result-card" style="display:none">
-      <h2>2 · Verdict</h2>
-      <div class="verdict">
-        <span class="band" id="verdict-band">—</span>
-        <span class="reason" id="verdict-reason"></span>
+    <section class="card geo">
+      <div class="card-title"><h2>Site &amp; runtime</h2><span class="more">•••</span></div>
+      <table class="detail-table"><tbody id="site-table"></tbody></table>
+    </section>
+
+    <section class="card alerts">
+      <div class="card-title"><h2>Advisories</h2></div>
+      <div id="alerts-list"></div>
+    </section>
+
+    <section class="card analytics">
+      <div class="card-title"><h2>Both engines</h2><span class="more">•••</span></div>
+      <div class="analytics-top"><span>ISO 7243 · NIOSH</span><span>Stricter band wins</span></div>
+      <div id="findings"><div class="empty">Findings appear after a screen.</div></div>
+    </section>
+
+    <section class="card management">
+      <div class="card-title"><h2>Worker‑hours ledger</h2></div>
+      <div class="ledger">
+        <div class="ledger-fig"><strong id="stat-observed">0</strong><span>hazardous worker‑hrs observed</span></div>
+        <div class="ledger-fig"><strong id="stat-covered">0</strong><span>worker‑hrs covered by advisories</span></div>
       </div>
-      <table>
-        <tr><th>Air</th><th class="num">RH</th><th class="num">Wind</th><th class="num">WBGT</th><th class="num">Heat index</th></tr>
-        <tr>
-          <td class="num" id="m-air">—</td><td class="num" id="m-rh">—</td>
-          <td class="num" id="m-wind">—</td><td class="num" id="m-wbgt">—</td>
-          <td class="num" id="m-hi">—</td>
-        </tr>
-      </table>
-      <div id="findings"></div>
-    </div>
+      <p class="status" id="stat-assumption" style="margin:0"></p>
+    </section>
 
-    <div class="card" id="proposals-card" style="display:none">
-      <h2>3 · Proposed actions <span class="hint" id="reasoning"></span></h2>
-      <div id="proposals"></div>
+    <aside class="utility">
+      <button id="refresh-btn">⟳ &nbsp;Update data</button>
+      <div class="brand">Chhaya</div>
+      <div class="brand-meta">read-only agent · write-only notifier <span>◉ ◐ ◌</span></div>
+    </aside>
+  </main>
+
+  <section class="operations">
+    <div class="operations-head"><h2>Screen an hour</h2><span class="status">Two published engines · stricter band wins</span></div>
+    <div class="operation-form">
+      <div><label for="when">Hour (local)</label><input type="datetime-local" id="when" step="3600" /></div>
+      <div><label for="workload">Workload</label><select id="workload"><option value="light">Light</option><option value="moderate">Moderate</option><option value="heavy" selected>Heavy</option><option value="very_heavy">Very heavy</option></select></div>
+      <div><label for="workers">Crew</label><input type="number" id="workers" value="35" min="1" max="10000" /></div>
+      <div><label for="acclim">Acclimatization</label><select id="acclim"><option value="unacclimatized" selected>Unacclimatized</option><option value="acclimatized">Acclimatized</option></select></div>
+      <button class="action-btn" id="screen-btn">Run screen</button>
+    </div>
+    <div class="operation-result" id="operation-result">
+      <div class="result-line"><strong class="result-band" id="result-band">—</strong><span id="result-reason" class="result-meta"></span><span id="result-metrics" class="result-meta"></span></div>
+      <div class="proposal-list" id="proposal-list"></div>
     </div>
   </section>
 
-  <section>
-    <div class="card">
-      <h2>Living state</h2>
-      <div class="ledger-grid">
-        <div class="stat"><div class="n" id="stat-observed">0</div><div class="l">hazardous worker‑hrs observed</div></div>
-        <div class="stat"><div class="n" id="stat-covered">0</div><div class="l">worker‑hrs covered by advisories</div></div>
-      </div>
-      <p class="hint" style="margin-bottom:0">
-        Covered is measured. “Avoided” is a counterfactual: <span id="stat-assumption" class="muted"></span>
-      </p>
-    </div>
-
-    <div class="card">
-      <h2>Standing advisories</h2>
-      <div id="advisories"></div>
-    </div>
-
-    <div class="card">
-      <h2>Audit trail</h2>
-      <div class="audit"><table><tbody id="records"></tbody></table></div>
-    </div>
-
-    <div class="card">
-      <h2>Escalation clock</h2>
-      <button class="ghost" id="escalation-btn">Check who has waited too long</button>
-      <div id="escalations" style="margin-top:10px"></div>
-    </div>
+  <section class="block">
+    <div class="block-head"><h2>Escalation clock</h2><span class="status">Unresolved proposals past their window surface here</span></div>
+    <button class="ghost-btn" id="escalation-btn">Check who has waited too long</button>
+    <div id="escalations" style="margin-top:10px"></div>
   </section>
-</main>
+
+  <section class="block">
+    <div class="block-head"><h2>Audit trail</h2><span class="status" id="report-summary">Action records from the site store</span></div>
+    <table class="detail-table"><tbody id="records"></tbody></table>
+  </section>
+</div>
 
 <script>
 const $ = (id) => document.getElementById(id);
-const api = async (path, opts) => {
-  const res = await fetch(path, opts);
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.detail || (res.status + " " + res.statusText));
-  return body;
-};
-const post = (path, body) =>
-  api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-
+const api = async (path, opts) => { const res = await fetch(path, opts); const body = await res.json().catch(() => ({})); if (!res.ok) throw new Error(body.detail || `${res.status} ${res.statusText}`); return body; };
+const post = (path, body) => api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 let supervisor = { name: "Supervisor", roles: ["site_supervisor"] };
+function localInputValue(date) { const p = (n) => String(n).padStart(2, "0"); return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:00`; }
+function dotGrid(target, count, on) { $(target).innerHTML = Array.from({ length: count }, (_, i) => `<i class="${i < on ? "on" : ""}"></i>`).join(""); }
+function scaleCount(value, max) { return Math.max(1, Math.min(105, Math.round((value / max) * 110))); }
+function showError(message) { $("error-banner").textContent = message; $("error-banner").style.display = "block"; setTimeout(() => $("error-banner").style.display = "none", 6000); }
+function updateClock() { const now = new Date(); $("clock").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); if (!$("when").value) { const afternoon = new Date(now); afternoon.setHours(15, 0, 0, 0); $("when").value = localInputValue(afternoon); } }
+function bandClass(band) { return ["normal", "caution", "stop"].includes(band) ? "band-" + band : ""; }
 
-function localInputValue(date) {
-  const p = (n) => String(n).padStart(2, "0");
-  return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:00`;
-}
-
-async function boot() {
-  const [config, policy] = await Promise.all([api("/api/config"), api("/api/policy")]);
-  $("badge-mode").textContent = "mode: " + config.mode + " · weather: " + config.weather_source;
-  $("badge-mode").className = "badge " + (config.mode === "aws" ? "live" : "");
-  $("badge-site").textContent = config.site_id;
-  $("badge-policy").textContent = "dry-run: " + config.dry_run + " · " + config.policy_fingerprint.slice(0, 10);
-  $("badge-policy").className = "badge " + (config.dry_run ? "dry" : "live");
-  if (policy.site && policy.site.supervisor) {
+function renderSite(config, policy) {
+  const mode = config.mode + (config.weather_source ? " · " + config.weather_source : "");
+  $("tag-mode").textContent = "mode " + config.mode;
+  $("tag-mode").className = "tag " + (config.mode === "aws" ? "tag-live" : "");
+  $("tag-site").textContent = "site " + config.site_id;
+  $("tag-policy").textContent = "dry-run " + (config.dry_run ? "on" : "off");
+  $("tag-policy").className = "tag " + (config.dry_run ? "tag-dry" : "tag-live");
+  let supervisorName = "—";
+  if (policy && policy.site && policy.site.supervisor) {
+    supervisorName = policy.site.supervisor.name;
     supervisor = { name: policy.site.supervisor.name, roles: policy.site.supervisor.roles };
   }
-  updateClock();
-  await refreshState();
+  $("site-table").innerHTML = [
+    ["Site", config.site_id],
+    ["Supervisor", supervisorName],
+    ["Runtime mode", mode],
+    ["Weather source", config.weather_source],
+    ["Policy fingerprint", config.policy_fingerprint],
+    ["Dry run", config.dry_run ? "Enabled" : "Disabled"],
+  ].map(([k, v]) => `<tr><td>${k}</td><td class="mono">${v}</td></tr>`).join("");
 }
 
-function updateClock() {
-  const now = new Date();
-  // default the screen to the hot afternoon of today
-  const afternoon = new Date(now); afternoon.setHours(15, 0, 0, 0);
-  if (!$("when").value) $("when").value = localInputValue(afternoon);
-}
-setInterval(() => {}, 60000);
-
-function bandClass(band) { return ["normal", "caution", "stop"].includes(band) ? band : ""; }
-
-function showError(message) {
-  const b = $("error-banner");
-  b.textContent = message;
-  b.style.display = "block";
-  setTimeout(() => { b.style.display = "none"; }, 6000);
-}
-
-async function screenHour() {
-  $("error-banner").style.display = "none";
-  const whenLocal = $("when").value;
-  const payload = {
-    when: new Date(whenLocal).toISOString(),
-    workload: $("workload").value,
-    acclimatization: $("acclim").value,
-    workers: Number($("workers").value),
-  };
-  let body;
-  try {
-    body = await post("/api/triage", payload);
-  } catch (e) { showError(e.message); return; }
-  renderTriage(body);
-  await refreshState();
+function renderAlerts(state) {
+  const advisories = state.advisories || [];
+  $("alerts-list").innerHTML =
+    advisories.length
+      ? advisories.map((a) => `
+          <div class="alert ${a.active ? "active" : ""}">
+            <p>${a.action_id.replaceAll("_", " ").toUpperCase()} · ${a.active ? "ACTIVE" : (a.revoked ? "REVOKED" : "EXPIRED")}</p>
+            <p class="subtle">${a.reason || "Standing heat advisory"}</p>
+            <time>issued ${a.issued_at} · expires ${a.expires_at || "—"}</time>
+            ${a.revoked ? `<time>revoked by ${a.revoked_by}: ${a.revoke_reason}</time>`
+              : `<button class="ghost-btn" data-revoke="${a.advisory_id}">Revoke</button>`}
+          </div>`).join("")
+      : `<div class="alert active"><p>Monitoring is active</p><p class="subtle">No current heat advisory. Run a screen to evaluate the next hour.</p><time>System ready</time></div>
+         <div class="alert"><p>Verdicts and proposals</p><p class="subtle">The stricter band of ISO and NIOSH wins; approvals must match the exact phrase.</p></div>`;
+  $("alerts-list").querySelectorAll("[data-revoke]").forEach((btn) => btn.addEventListener("click", () => revoke(btn.dataset.revoke)));
 }
 
-function renderTriage(body) {
-  const t = body.triage, v = t.verdict, idx = t.indices;
-  $("result-card").style.display = "block";
-  $("verdict-band").textContent = v.label + " (" + v.band + ")";
-  $("verdict-band").className = "band " + bandClass(v.band);
-  $("verdict-reason").textContent = v.reason;
-  $("m-air").textContent = idx.air_c + " °C";
-  $("m-rh").textContent = idx.relative_humidity + " %";
-  $("m-wind").textContent = idx.wind_ms + " m/s";
-  $("m-wbgt").textContent = idx.wbgt_c + " °C";
-  $("m-hi").textContent = idx.heat_index_c + " °C";
-
-  $("findings").innerHTML = v.findings.map((f) => `
-    <div class="finding ${f.engine === v.deciding_engine ? "decider" : ""}">
-      <div><span class="engine">${f.engine}</span>
-        ${f.engine === v.deciding_engine ? ' <span class="pill">deciding</span>' : ""}
-        · <b>${f.band}</b>${f.margin_c === null ? "" : " · margin " + f.margin_c + " °C"}</div>
-      <div>${f.summary}</div>
-      <div class="cite">${f.detail}</div>
-      <div class="cite">Source: ${f.citation}</div>
-    </div>`).join("");
-
-  $("proposals-card").style.display = "block";
-  $("reasoning").textContent = "— " + body.reasoning;
-  const props = body.proposals;
-  if (!props.length) {
-    $("proposals").innerHTML = '<div class="empty">No action is proposed for this band. A quiet hour is a quiet console.</div>';
-    return;
-  }
-  $("proposals").innerHTML = props.map((p) => `
-    <div class="prop">
-      <div class="top">
-        <span class="label">${p.label}</span>
-        <span class="pill">${p.standing ? "standing" : "one-shot"} · verify: ${p.verify}${p.ttl_minutes ? " · ttl " + p.ttl_minutes + "m" : ""}</span>
-      </div>
-      <div class="hint">Type the exact phrase to approve (case-sensitive, no paraphrasing):</div>
-      <span class="phrase">${p.approval_phrase}</span>
-      <input id="approve-${p.token}" placeholder="type the phrase here" autocomplete="off" />
-      <button class="ghost" data-token="${p.token}">Approve</button>
-      <div class="hint" id="feedback-${p.token}"></div>
-    </div>`).join("");
-  $("proposals").querySelectorAll("button[data-token]").forEach((btn) =>
-    btn.addEventListener("click", () => approve(btn.dataset.token)));
-}
-
-async function approve(token) {
-  const input = $("approve-" + token);
-  const fb = $("feedback-" + token);
-  fb.textContent = "";
-  let body;
-  try {
-    body = await post("/api/approve", {
-      token, raw_message: input.value, approver_name: supervisor.name,
-      approver_roles: supervisor.roles, notifier_acknowledged: true,
-    });
-  } catch (e) { fb.innerHTML = '<span class="out-denied">' + e.message + "</span>"; return; }
-  const r = body.record;
-  const colour = "out-" + r.outcome;
-  const why = r.approval.phrase_matched ? "phrase matched" : "phrase not matched";
-  fb.innerHTML = `<span class="${colour}">→ ${r.outcome}</span> <span class="muted">(${why}; ${r.verification_outcome})</span>`;
-  await refreshState();
+function renderRecords(state) {
+  const records = state.records || [];
+  $("report-summary").textContent = `${records.length} action record${records.length === 1 ? "" : "s"} · live from the site store`;
+  $("records").innerHTML = records.length
+    ? records.map((r) => `<tr><td class="mono">${r.action_id}</td><td>${r.outcome}</td><td>${r.approver}</td><td class="mute">${r.proposed_at}<br/>${r.verification_detail || ""}</td></tr>`).join("")
+    : `<tr><td colspan="4" class="empty">No action records yet.</td></tr>`;
 }
 
 async function refreshState() {
-  let state;
-  try { state = await api("/api/state"); } catch (e) { return; }
-  const ledger = state.ledger;
-  $("stat-observed").textContent = ledger.hazardous_worker_hours_observed.toFixed(1);
-  $("stat-covered").textContent = ledger.hazardous_worker_hours_covered.toFixed(1);
-  $("stat-assumption").textContent = ledger.avoided_estimate_assumption;
+  try {
+    const state = await api("/api/state");
+    renderAlerts(state);
+    renderRecords(state);
+    const ledger = state.ledger;
+    $("stat-observed").textContent = ledger.hazardous_worker_hours_observed.toFixed(1);
+    $("stat-covered").textContent = ledger.hazardous_worker_hours_covered.toFixed(1);
+    $("stat-assumption").textContent = "Covered is measured. Avoided is a counterfactual: " + ledger.avoided_estimate_assumption;
+  } catch (e) { showError(e.message); }
+}
 
-  const adv = state.advisories;
-  $("advisories").innerHTML = adv.length ? adv.map((a) => `
-    <div class="prop">
-      <div class="top">
-        <span class="label mono">${a.action_id}</span>
-        <span class="pill ${a.active ? "out-verified" : "out-denied"}">${a.active ? "ACTIVE" : (a.revoked ? "revoked" : "expired")}</span>
+function applyScreen(body) {
+  const triage = body.triage, verdict = triage.verdict, idx = triage.indices;
+  const bands = document.querySelectorAll(".result-band");
+  bands.forEach((el) => { el.textContent = `${verdict.label} · ${verdict.band}`; el.className = "result-band " + bandClass(verdict.band); });
+  $("result-reason").textContent = verdict.reason;
+  $("result-metrics").textContent = "· WBGT " + idx.wbgt_c + " °C · heat index " + idx.heat_index_c + " °C · air " + idx.air_c + " °C";
+  $("m-wbgt").textContent = idx.wbgt_c.toFixed(1); dotGrid("wbgt-chart", 110, scaleCount(idx.wbgt_c, 40));
+  $("m-hi").textContent = idx.heat_index_c.toFixed(1); dotGrid("hi-chart", 110, scaleCount(idx.heat_index_c, 60));
+  $("m-air").textContent = idx.air_c.toFixed(1); dotGrid("air-chart", 110, scaleCount(idx.air_c, 50));
+  $("m-rh").textContent = idx.relative_humidity.toFixed(0); dotGrid("rh-chart", 110, scaleCount(idx.relative_humidity, 100));
+  $("m-wind").textContent = idx.wind_ms.toFixed(1); dotGrid("wind-chart", 110, scaleCount(idx.wind_ms, 15));
+
+  $("findings").innerHTML = verdict.findings.map((f) => `
+    <div class="finding ${f.engine === verdict.deciding_engine ? "deciding" : ""}">
+      <div>
+        <strong>${f.engine}</strong>${f.engine === verdict.deciding_engine ? ' <span class="deciding-tag">◉ deciding</span>' : ""}
+        · <b>${f.band}</b>${f.margin_c === null ? "" : " · margin " + f.margin_c + " °C"}
       </div>
-      <div class="hint">issued ${a.issued_at} by ${a.issued_by} · expires ${a.expires_at}</div>
-      <div class="hint">${a.reason}</div>
-      ${a.revoked ? `<div class="hint">revoked by ${a.revoked_by}: ${a.revoke_reason}</div>`
-        : `<button class="ghost" data-revoke="${a.advisory_id}" style="margin-top:8px">Revoke</button>`}
-    </div>`).join("") : '<div class="empty">No advisories yet.</div>';
-  $("advisories").querySelectorAll("button[data-revoke]").forEach((btn) =>
-    btn.addEventListener("click", () => revoke(btn.dataset.revoke)));
+      <div class="mute">${f.summary}</div>
+      <div class="status">${f.detail}</div>
+      <div class="status">Source: ${f.citation}</div>
+    </div>`).join("");
 
-  const recs = state.records;
-  $("records").innerHTML = recs.length ? recs.map((r) => `
-    <tr>
-      <td><span class="pill out-${r.outcome}">${r.outcome}</span></td>
-      <td class="mono">${r.action_id}</td>
-      <td>${r.approver}<div class="hint">${(r.approver_roles || []).join(", ")}</div></td>
-      <td class="hint">${r.proposed_at}<br/>excerpt: “${(r.approval_excerpt || "").slice(0, 40)}”</td>
-      <td class="hint">${r.verification_detail}</td>
-    </tr>`).join("") : '<tr><td class="empty">No action records yet.</td></tr>';
+  $("operation-result").classList.add("visible");
+  $("proposal-list").innerHTML = body.proposals.length
+    ? body.proposals.map((proposal) => `
+        <article class="proposal">
+          <h3>${proposal.label}</h3>
+          <span class="status">${proposal.standing ? "Standing" : "One-shot"} · verify ${proposal.verify}${proposal.ttl_minutes ? " · ttl " + proposal.ttl_minutes + "m" : ""}</span>
+          <span class="phrase">${proposal.approval_phrase}</span>
+          <input class="modal-input" id="approval-${proposal.token}" placeholder="Type exact phrase" autocomplete="off">
+          <button class="ghost-btn" data-approve="${proposal.token}">Approve</button>
+          <div class="feedback" id="feedback-${proposal.token}"></div>
+        </article>`).join("")
+    : `<div class="empty">No action is proposed for this band. A quiet hour is a quiet console.</div>`;
+  $("proposal-list").querySelectorAll("[data-approve]").forEach((button) => button.addEventListener("click", () => approve(button.dataset.approve)));
+}
+
+async function screenHour() {
+  try {
+    const body = await post("/api/triage", { when: new Date($("when").value).toISOString(), workload: $("workload").value, acclimatization: $("acclim").value, workers: Number($("workers").value) });
+    applyScreen(body);
+    await refreshState();
+  } catch (e) { showError(e.message); }
+}
+
+async function approve(token) {
+  const feedback = $("feedback-" + token);
+  try {
+    const body = await post("/api/approve", { token, raw_message: $("approval-" + token).value, approver_name: supervisor.name, approver_roles: supervisor.roles, notifier_acknowledged: true });
+    feedback.innerHTML = `<span class="outcome">${body.record.outcome}</span> · ${body.record.verification_outcome} · phrase ${body.record.approval.phrase_matched ? "matched" : "not matched"}`;
+    await refreshState();
+  } catch (e) { feedback.textContent = e.message; }
 }
 
 async function revoke(id) {
   const reason = prompt("Why is this advisory being revoked?");
   if (!reason) return;
-  try {
-    await post("/api/revoke", { advisory_id: id, revoked_by: supervisor.name, reason });
-  } catch (e) { showError(e.message); }
+  try { await post("/api/revoke", { advisory_id: id, revoked_by: supervisor.name, reason }); } catch (e) { showError(e.message); }
   await refreshState();
 }
 
 async function checkEscalations() {
   const body = await post("/api/escalations/check", {});
   const box = $("escalations");
-  if (!body.fired.length) {
-    box.innerHTML = '<div class="empty">Nobody has waited past the window. The clock is quiet.</div>';
-    return;
-  }
-  box.innerHTML = body.fired.map((f) => `
-    <div class="finding decider">
-      <div class="mono">${f.action_id} · waited ${f.waited_minutes} min</div>
-      <pre class="hint" style="white-space:pre-wrap;margin:6px 0 0">${f.message}</pre>
-    </div>`).join("");
+  box.innerHTML = body.fired.length
+    ? body.fired.map((f) => `<div class="alert active"><p>${f.action_id.replaceAll("_", " ").toUpperCase()} · waited ${f.waited_minutes} min</p><p class="subtle" style="white-space:pre-wrap">${f.message}</p></div>`).join("")
+    : `<div class="status">Nobody has waited past the window. The clock is quiet.</div>`;
 }
 
+async function boot() {
+  dotGrid("wbgt-chart", 110, 55); dotGrid("hi-chart", 110, 50); dotGrid("air-chart", 110, 52);
+  dotGrid("rh-chart", 110, 58); dotGrid("wind-chart", 110, 40);
+  updateClock(); setInterval(updateClock, 60000);
+  try {
+    const [config, policy] = await Promise.all([api("/api/config"), api("/api/policy")]);
+    renderSite(config, policy);
+    await refreshState();
+  } catch (e) { showError(e.message); }
+}
+
+$("refresh-btn").addEventListener("click", refreshState);
 $("screen-btn").addEventListener("click", screenHour);
-$("preset-afternoon").addEventListener("click", () => {
-  const d = new Date(); d.setHours(15, 0, 0, 0);
-  $("when").value = localInputValue(d);
-});
 $("escalation-btn").addEventListener("click", checkEscalations);
 boot();
 </script>
