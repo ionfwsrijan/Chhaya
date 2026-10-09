@@ -1,0 +1,132 @@
+# Chhaya heat policy v1 — Hyderabad Metro Rail construction, Miyapur Site B.
+#
+# This file is the whole of what Chhaya is allowed to do. Actions not listed
+# here are refused. An action whose approval phrase is not typed, verbatim,
+# by a human holding one of the listed roles is refused. There is no model in
+# the consent path: the phrase is compared to the raw message as a string.
+#
+# Phrases are written in capitals so a supervisor can copy them from the
+# console without transcription errors. casefold: false is deliberate: a
+# near-miss is a refusal, not a judgement call.
+
+version: 1
+
+site:
+  id: hyderabad-miyapur-site-b
+  name: "Miyapur Metro Construction — Site B (viaduct segment casting)"
+  city: Hyderabad
+  state: Telangana
+  country: India
+  latitude: 17.4977
+  longitude: 78.3844
+  timezone: Asia/Kolkata
+  elevation_m: 542
+  supervisor:
+    name: Ravi Kumar
+    phone: "+91-90000-00001"
+    roles: [site_supervisor, safety_officer]
+
+crew:
+  # Viaduct segment casting: rebar tying, formwork, crane signalling.
+  default_workload: heavy
+  # Daily-wage crews turn over weekly; Chhaya protects the newest worker,
+  # so the RAL (unacclimatized) limit applies until a site opts in.
+  default_acclimatization: unacclimatized
+
+thresholds:
+  # Optional override of the engine default (2.0 C, the widest spread
+  # between the five standards in NIOSH 2016-106 Table 5-1).
+  caution_margin_c: 2.0
+  stop_when_band: stop
+
+policy:
+  # dry_run: true records every proposal and approval but executes nothing.
+  # Flip to false only after the site has run the console for a week.
+  dry_run: true
+  max_actions_per_hour: 6
+  max_advisory_ttl_minutes: 480
+  approval:
+    timeout_minutes: 10
+    casefold: false
+
+actions:
+  - id: hydrate
+    label: "Call a water break for the whole crew"
+    phrase: "APPROVE WATER BREAK"
+    approver_roles: [site_supervisor, safety_officer]
+    notify: [supervisor, crew_lead]
+    verify: supervisor_confirm
+    reversible: true
+    ttl_minutes: 30
+    standing_allowed: false
+
+  - id: move_to_shade
+    label: "Move the crew to the shaded rest area"
+    phrase: "APPROVE MOVE TO SHADE"
+    approver_roles: [site_supervisor, safety_officer]
+    notify: [supervisor, crew_lead]
+    verify: store_present
+    reversible: true
+    ttl_minutes: 120
+    standing_allowed: true
+
+  - id: start_rest_cycle
+    label: "Start the NIOSH work/rest cycle for this hour"
+    phrase: "APPROVE REST CYCLE"
+    approver_roles: [site_supervisor, safety_officer]
+    notify: [supervisor, crew_lead]
+    verify: store_present
+    reversible: true
+    ttl_minutes: 480
+    standing_allowed: true
+
+  - id: reschedule_shift
+    label: "Move heavy work out of the hot hours"
+    phrase: "APPROVE RESCHEDULE SHIFT"
+    approver_roles: [site_supervisor]
+    notify: [supervisor, owner]
+    verify: supervisor_confirm
+    reversible: true
+    ttl_minutes: 480
+    standing_allowed: true
+
+  - id: stop_work
+    label: "Stop work for the crew"
+    phrase: "APPROVE STOP WORK"
+    approver_roles: [site_supervisor, safety_officer]
+    notify: [supervisor, crew_lead, owner]
+    verify: notifier_ack
+    reversible: true
+    ttl_minutes: null
+    standing_allowed: false
+
+  - id: issue_advisory
+    label: "Issue a standing heat advisory for this site"
+    phrase: "APPROVE STANDING ADVISORY"
+    approver_roles: [safety_officer]
+    notify: [supervisor, crew_lead, owner]
+    verify: store_present
+    reversible: true
+    ttl_minutes: 480
+    standing_allowed: true
+
+proposals:
+  # The escalation ladder, written down. Normal proposes nothing (a quiet
+  # day is a quiet console). Caution proposes the crew-level actions. Stop
+  # proposes moving the crew and halting work.
+  normal: []
+  caution: [hydrate, start_rest_cycle]
+  stop: [move_to_shade, stop_work]
+
+escalation:
+  # If nobody approves a stop-work proposal within this window, the site
+  # owner is called. The clock starts when the proposal is created.
+  after_minutes: 10
+  notify_role: owner
+  emergency_contacts:
+    - name: "Site owner (Padma Constructions)"
+      phone: "+91-90000-00002"
+      role: owner
+    - name: "Telangana labour helpline"
+      phone: "1800-425-2977"
+      role: government_helpline
