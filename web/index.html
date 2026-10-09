@@ -6,204 +6,319 @@
 <title>Chhaya — heat action console</title>
 <style>
   :root {
-    --bg: #121212;
-    --panel: #151515;
-    --panel-soft: #1b1b1b;
-    --line: #484848;
-    --line-soft: #2c2c2c;
-    --ink: #f0f0f0;
-    --muted: #777777;
+    --canvas: #252725;
+    --ink: #101010;
+    --soft-ink: #777875;
+    --muted: #888;
+    --green: #0e9b4e;
+    --yellow: #e9c800;
+    --red: #fa4e35;
+    --panel: #f8f8f5;
+    --card: #ffffff;
+    --line: #d9d9d6;
     --mono: "Cascadia Code", Consolas, ui-monospace, monospace;
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0; min-width: 320px; background: var(--bg); color: var(--ink);
-    font-family: Arial, Helvetica, sans-serif; font-size: 12px; letter-spacing: -.01em;
+    margin: 0; min-width: 320px;
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 11px; font-weight: 500; letter-spacing: -0.015em;
   }
   button, input, select { font: inherit; }
   button { cursor: pointer; }
-  .shell { max-width: 1125px; margin: 0 auto; padding: 34px 0 42px; }
-  .topbar {
-    height: 44px; border-bottom: 1px solid var(--line-soft); display: flex; align-items: flex-start;
-    color: var(--muted); position: relative;
+  .shell { width: 100%; max-width: 1480px; margin: 0 auto; padding: 20px 24px 32px; }
+  #error-banner { display: none; color: #fff; border: 1px solid #fff; background: rgba(0,0,0,.55); border-radius: 8px; padding: 10px 12px; margin: 10px 0; font-size: 11px; }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: minmax(450px, 1.02fr) minmax(360px, 1fr);
+    grid-template-rows: 365px 365px;
+    gap: 12px;
+    width: 100%; max-width: 1420px; margin: 0 auto;
   }
-  .brand-sm { font-size: 13px; color: var(--ink); }
-  .top-actions { margin-left: auto; display: flex; gap: 8px; align-items: center; }
-  .tag { font-family: var(--mono); font-size: 10px; border: 1px solid var(--line); padding: 3px 7px; color: var(--muted); }
-  .tag-live { color: #151515; background: var(--white); border-color: var(--white); }
-  .tag-dry { color: var(--white); border: 1px dashed var(--white); }
-  .dots { position: absolute; left: 0; bottom: -4px; display: flex; gap: 8px; }
-  .dots i { width: 3px; height: 3px; border-radius: 50%; background: var(--ink); display: block; }
-  .dots i:nth-child(2), .dots i:nth-child(3) { opacity: .55; }
-  .hero { display: flex; align-items: center; justify-content: space-between; margin: 32px 0 16px; }
-  h1 { font-size: 24px; line-height: 1; font-weight: 400; margin: 0; }
-  .hero-right { display: flex; align-items: baseline; gap: 17px; }
-  .clock { font-size: 23px; }
-  .clock-label { color: var(--muted); font-size: 10px; }
-  #error-banner { display: none; color: var(--white); border: 1px solid var(--white); padding: 10px; margin: 0 0 12px; }
-  .dashboard-grid { display: grid; grid-template-columns: 2.12fr 1fr 1fr; gap: 8px; }
-  .card {
-    min-width: 0; border: 1px solid var(--line); border-radius: 11px; background: var(--panel);
-    padding: 10px; overflow: hidden;
+  .card { border: 0; border-radius: 10px; padding: 0; }
+
+  .summary {
+    grid-column: 1; grid-row: 1 / 3;
+    min-height: 0; overflow: hidden; position: relative;
+    background:
+      linear-gradient(155deg, rgba(220,239,244,.8) 0 18%, transparent 18% 100%),
+      linear-gradient(130deg, #b7dbe8 0%, #f9f8f1 42%, #dfe8c7 76%, #d4dfae 100%);
+    box-shadow: 0 22px 44px rgba(0,0,0,.2), 0 3px 8px rgba(0,0,0,.18);
   }
-  .card-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
-  h2 { font-size: 22px; font-weight: 400; margin: 0; line-height: 1; }
-  .more { color: var(--ink); font-size: 20px; line-height: 10px; letter-spacing: 3px; }
-  .summary { grid-column: 1; min-height: 339px; }
-  .signal { width: 24px; height: 24px; border: 1px solid var(--ink); border-radius: 50%; display: grid; place-items: center; }
-  .signal::after { content: "◌"; font-size: 18px; }
-  .result-band { font-size: 16px; text-transform: uppercase; padding: 6px 0 10px; }
-  .band-normal { border: 1px solid var(--white); color: var(--white); padding: 4px 9px; }
-  .band-caution { border: 1px dashed var(--white); color: var(--white); padding: 4px 9px; }
-  .band-stop { background: var(--white); color: #151515; padding: 4px 9px; }
-  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 12px; }
-  .metric-label { color: var(--muted); margin-bottom: 8px; }
-  .dot-chart { height: 112px; display: grid; grid-template-columns: repeat(11, 1fr); grid-template-rows: repeat(10, 1fr); gap: 4px; align-content: end; }
-  .dot-chart i { display: block; width: 4px; height: 4px; border-radius: 50%; border: 1px solid #696969; opacity: .55; }
-  .dot-chart i.on { background: var(--white); border-color: var(--white); opacity: 1; }
-  .metric-value { display: flex; align-items: baseline; gap: 9px; margin-top: 7px; }
-  .metric-value strong { font-size: 23px; font-weight: 400; }
-  .metric-value span { color: var(--muted); font-size: 11px; }
-  .metric-value em { font-style: normal; margin-left: auto; color: var(--ink); }
-  .geo { grid-column: 2; min-height: 339px; }
-  .detail-table { width: 100%; border-collapse: collapse; }
-  .detail-table td { border-top: 1px solid var(--line-soft); padding: 11px 4px; color: var(--muted); }
-  .detail-table td:first-child { color: var(--ink); }
-  .alerts { grid-column: 3; min-height: 339px; }
-  .alert {
-    border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px; min-height: 74px; margin-bottom: 4px;
-    color: var(--muted);
+  .summary::before {
+    content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none;
+    background:
+      repeating-linear-gradient(30deg, transparent 0 48px, rgba(255,255,255,.7) 49px 50px, transparent 51px 84px),
+      repeating-linear-gradient(150deg, transparent 0 68px, rgba(255,255,255,.5) 69px 70px, transparent 71px 110px);
   }
-  .alert.active { background: var(--white); color: #151515; border-color: var(--white); min-height: 106px; }
-  .alert p { margin: 0 0 8px; line-height: 1.25; }
-  .alert .subtle { color: var(--muted); } .alert.active .subtle { color: #6c6c6c; }
-  .alert time { display: block; margin-top: 15px; }
+  .summary::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 24%; pointer-events: none;
+    background:
+      linear-gradient(90deg, transparent 0 10%, rgba(0,0,0,.04) 10.2% 10.4%, transparent 10.6% 100%),
+      linear-gradient(180deg, rgba(251,251,250,.25), rgba(251,251,250,.96) 34%);
+  }
+  .summary > * { position: relative; z-index: 1; }
+
+  .map-nav {
+    position: absolute; top: 20px; left: 22px; right: 22px; height: 46px;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    border: 1px solid rgba(255,255,255,.88); border-radius: 14px;
+    background: rgba(255,255,255,.42);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 12px 26px rgba(54,75,62,.16);
+    backdrop-filter: blur(28px) saturate(145%);
+    -webkit-backdrop-filter: blur(28px) saturate(145%);
+    padding: 0 14px;
+    z-index: 2;
+  }
+  .map-nav strong { font-size: 15px; font-weight: 800; letter-spacing: -.04em; }
+  .map-nav strong span { color: var(--green); }
+  .nav-tags { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+  .tag { font-family: var(--mono); font-size: 9.5px; border: 1px solid rgba(16,16,16,.35); border-radius: 10px; padding: 4px 8px; color: #2c2d2a; background: rgba(255,255,255,.5); }
+  .tag-live { background: #101010; color: #fff; border-color: #101010; }
+  .tag-dry { border-style: dashed; }
+
+  .clock-chip { font-family: var(--mono); font-size: 10px; color: #2c2d2a; }
+  .map-location { position: absolute; color: rgba(91,100,87,.7); font-size: 12px; font-weight: 750; letter-spacing: .02em; }
+  .map-location.one { top: 92px; left: 34px; }
+  .map-location.two { top: 108px; right: 40px; }
+
+  .wbgt-dial {
+    position: absolute; top: 156px; right: 38px;
+    width: 128px; height: 128px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.62);
+    box-shadow: 0 10px 22px rgba(0,0,0,.1);
+    text-align: center; padding-top: 41px;
+  }
+  .wbgt-dial b { display: block; font-size: 25px; font-weight: 700; letter-spacing: -.05em; }
+  .wbgt-dial b::after { content: " °C"; font-size: 12px; font-weight: 600; color: #444; }
+  .wbgt-dial small { display: block; color: #777; font-size: 9px; letter-spacing: .12em; margin-top: 3px; }
+
+  .band-status { position: absolute; left: 40px; top: 200px; max-width: 240px; }
+  .band-status .band { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: -.03em; }
+  .band-status p { margin: 6px 0 0; color: #52565a; font-size: 10.5px; line-height: 1.35; }
+
+  .chips { position: absolute; left: 40px; right: 40px; bottom: 120px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .chip { border: 1px solid rgba(16,16,16,.14); border-radius: 10px; background: rgba(255,255,255,.55); padding: 8px 10px; backdrop-filter: blur(8px); }
+  .chip small { display: block; color: #5a6058; font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
+  .chip strong { font-family: var(--mono); font-size: 14px; font-weight: 600; }
+
+  .map-scale { position: absolute; left: 40px; bottom: 52px; right: 40px; color: #194b2d; font-size: 10px; }
+  .map-scale .scale-labels { display: flex; justify-content: space-between; }
+  .map-scale .scale-labels span:last-of-type { color: var(--red); }
+  .map-scale .track { position: relative; height: 9px; margin: 7px 0 5px; border-radius: 5px; background: linear-gradient(90deg, #55bd4c, #e9d300 52%, #fa4e35); }
+  .map-scale .track i { position: absolute; top: -3px; width: 4px; height: 15px; border-radius: 2px; background: #101010; }
+  .map-scale .scale-note { color: #333; font-size: 9px; letter-spacing: .03em; }
+  .map-scale .scale-note b { font-family: var(--mono); }
+
+  .analytics {
+    grid-column: 2; grid-row: 1;
+    min-height: 0; padding: 18px 24px;
+    background-color: #f7f7f6;
+    background-image: radial-gradient(#c7c7c4 .8px, transparent .8px);
+    background-size: 10px 10px;
+    box-shadow: 0 16px 34px rgba(0,0,0,.18);
+    display: flex; flex-direction: column;
+  }
+  .analytics-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .analytics-head h2 { font-size: 13px; font-weight: 750; margin: 0; }
+  .analytics-head span { color: var(--soft-ink); font-size: 10px; font-weight: 600; }
+  .findings { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
+  .finding { border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 10px; background: #fff; padding: 10px 12px; }
+  .finding.deciding { border-left-color: #101010; }
+  .finding .f-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .finding strong { font-weight: 750; }
+  .finding .f-band { font-weight: 800; text-transform: uppercase; padding: 1px 7px; border-radius: 9px; font-size: 9.5px; }
+  .f-band.band-normal { background: #dff2e4; color: #0b7a3d; }
+  .f-band.band-caution { background: #fbf2c9; color: #8a6d00; }
+  .f-band.band-stop { background: #ffdfda; color: #c12718; }
+  .finding .deciding-tag { font-family: var(--mono); font-size: 9px; border: 1px solid #101010; color: #101010; padding: 1px 5px; border-radius: 8px; }
+  .finding .f-sum, .finding .f-src { color: var(--muted); margin-top: 5px; line-height: 1.35; }
+  .finding .f-src { font-size: 9.5px; }
+  .empty { color: var(--muted); padding: 12px 0; }
+
+  .geo {
+    grid-column: 2; grid-row: 2;
+    min-height: 0; width: calc(50% - 6px);
+    padding: 18px 20px 14px 24px;
+    background: var(--card);
+    border-radius: 19px;
+    position: relative;
+    box-shadow: 0 12px 26px rgba(0,0,0,.14);
+  }
+  .geo-title { font-size: 12px; font-weight: 750; }
+  .geo-read { margin-top: 16px; font-size: 34px; font-weight: 700; letter-spacing: -.05em; }
+  .geo-read small { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 0; }
+  .geo-unit { color: var(--muted); font-size: 9px; margin-top: 2px; }
+  .geo-orbit {
+    position: absolute; top: 34px; right: 24px; width: 96px; height: 96px;
+    border: 1px solid #d9ddd8; border-radius: 50%;
+    background: radial-gradient(circle, #fff 0 34%, #e6eee7 35% 42%, transparent 43%);
+  }
+  .geo-orbit b { position: absolute; inset: 43px 0 auto; text-align: center; font-size: 10px; }
+  .geo-orbit b span { display: block; font-size: 8px; font-weight: 400; }
+  .geo-orbit i { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: #2c6b3a; }
+  .geo-orbit i:nth-of-type(1) { top: 14px; left: 42px; }
+  .geo-orbit i:nth-of-type(2) { top: 40px; right: 8px; }
+  .geo-orbit i:nth-of-type(3) { bottom: 14px; left: 42px; }
+  .geo-orbit i:nth-of-type(4) { top: 40px; left: 8px; }
+  .geo-orbit i:nth-of-type(5) { top: 25px; right: 22px; background: #d5dcd8; }
+  .geo-orbit i:nth-of-type(6) { bottom: 22px; right: 18px; background: #d5dcd8; }
+  .geo-note { position: absolute; left: 24px; right: 17px; bottom: 14px; padding: 7px 10px; border-radius: 16px; background: #e5faea; color: #2d7c3e; font-size: 10px; font-weight: 650; }
+
+  .alerts {
+    grid-column: 2; grid-row: 2;
+    min-height: 0; width: calc(50% - 6px);
+    margin-left: calc(50% + 6px);
+    padding: 18px 20px 14px;
+    background: var(--card);
+    border-radius: 19px;
+    position: relative;
+    box-shadow: 0 12px 26px rgba(0,0,0,.14);
+  }
+  .alerts-title { display: flex; justify-content: space-between; align-items: baseline; }
+  .alerts-title h2 { font-size: 12px; font-weight: 750; margin: 0; }
+  .alerts-title span { color: var(--muted); font-size: 9px; }
+  .alerts-list { position: absolute; top: 46px; left: 20px; right: 20px; bottom: 52px; overflow: auto; }
+  .alert { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; color: #5a5c58; }
+  .alert.active { background: #101010; color: #fff; border-color: #101010; }
+  .alert p { margin: 0 0 4px; line-height: 1.25; }
+  .alert .subtle { color: #8a8c88; } .alert.active .subtle { color: #cfcfc9; }
+  .alert time { display: block; font-size: 9px; margin-top: 4px; }
   .alert .ghost-btn { margin-top: 6px; }
-  .analytics { grid-column: 1; background: var(--panel); }
-  .analytics .card-title { margin-bottom: 5px; }
-  .analytics-top { display: flex; justify-content: space-between; color: var(--muted); margin-bottom: 10px; }
-  .finding { border-left: 1px solid var(--line-soft); padding: 9px 12px; margin-bottom: 6px; background: var(--panel-soft); }
-  .finding.deciding { border-left: 2px solid var(--white); }
-  .finding .deciding-tag { font-family: var(--mono); font-size: 9px; border: 1px solid var(--white); color: var(--white); padding: 1px 5px; }
-  .management { grid-column: 2; min-height: 184px; }
-  .ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-  .ledger-fig { border: 1px solid var(--line-soft); border-radius: 7px; padding: 12px; }
-  .ledger-fig strong { display: block; font-size: 26px; font-weight: 400; }
-  .ledger-fig span { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .04em; }
-  .utility { grid-column: 3; border: 0; background: transparent; padding: 12px 0 0 100px; color: var(--muted); }
-  .utility button { display: block; color: var(--muted); background: transparent; border: 0; padding: 0 0 9px; text-align: left; }
-  .utility button:hover, .utility button:focus { color: var(--ink); }
-  .brand { margin-top: 55px; color: var(--white); font-size: 39px; letter-spacing: -3px; }
-  .brand-sm .deva { color: var(--white); }
-  .brand-meta { color: var(--muted); margin-top: 2px; }
-  .brand-meta span { float: right; color: var(--white); }
-  .operations { margin-top: 8px; border: 1px solid var(--line); border-radius: 11px; padding: 14px; background: var(--panel); }
-  .operations-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-  .operations-head h2 { font-size: 17px; }
-  .operation-form { display: grid; grid-template-columns: 1.35fr .8fr .6fr .9fr auto; gap: 8px; align-items: end; }
-  .operation-form label { color: var(--muted); display: block; margin-bottom: 5px; }
-  .operation-form input, .operation-form select { width: 100%; background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 8px; }
-  .operation-result { margin-top: 12px; display: none; border-top: 1px solid var(--line-soft); padding-top: 12px; }
-  .operation-result.visible { display: block; }
-  .result-line { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-  .result-meta { color: var(--muted); }
-  .proposal-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin-top: 12px; }
-  .proposal { border: 1px solid var(--line-soft); border-radius: 7px; padding: 10px; }
-  .proposal h3 { margin: 0 0 5px; font-size: 13px; font-weight: 400; }
-  .proposal .phrase { color: var(--ink); font-family: var(--mono); font-size: 10px; display: block; margin: 8px 0; }
-  .proposal .feedback { color: var(--muted); margin-top: 7px; }
-  .outcome { color: var(--ink); }
-  .modal-input { background: transparent; border: 1px solid var(--line); color: var(--ink); border-radius: 4px; padding: 8px; width: 100%; margin: 8px 0; }
-  .action-btn { background: var(--white); color: #151515; border: 0; border-radius: 4px; padding: 8px 12px; }
-  .ghost-btn { background: transparent; color: var(--ink); border: 1px solid var(--line); border-radius: 4px; padding: 7px 10px; }
-  .empty { color: var(--muted); padding: 10px 0; }
-  .mute { color: var(--muted); }
-  .mono { font-family: var(--mono); }
-  .status { color: var(--muted); font-size: 11px; }
-  .full { grid-column: 1 / -1; }
-  .block { margin-top: 8px; border: 1px solid var(--line); border-radius: 11px; padding: 14px; background: var(--panel); }
-  .block .block-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
-  .block .block-head h2 { font-size: 17px; }
-  @media (max-width: 900px) {
-    .shell { padding: 20px 16px; } .dashboard-grid { grid-template-columns: 1fr 1fr; }
-    .summary, .analytics { grid-column: 1 / -1; } .geo, .alerts, .management, .utility { grid-column: auto; }
-    .utility { padding-left: 10px; } .brand { margin-top: 25px; }
+  .alerts-foot {
+    position: absolute; left: 16px; right: 16px; bottom: 14px;
+    background: #090909; color: #fff; border-radius: 11px;
+    padding: 8px 11px; font-size: 9px;
   }
-  @media (max-width: 600px) {
-    .topbar { height: auto; padding-bottom: 14px; } .top-actions { gap: 10px; }
-    .dots { display: none; } .dashboard-grid { grid-template-columns: 1fr; }
-    .summary, .analytics, .geo, .alerts, .management, .utility { grid-column: 1; }
-    .metrics { gap: 10px; } .metric-value strong { font-size: 20px; }
-    .operation-form { grid-template-columns: 1fr 1fr; } .operation-form button { grid-column: 1 / -1; }
+  .alerts-foot b { color: #00c950; font-size: 17px; margin-right: 6px; }
+  .alerts-foot span { color: #ddd; }
+
+  .ghost-btn { background: transparent; color: #101010; border: 1px solid #bbb; border-radius: 8px; padding: 6px 10px; font-size: 10px; font-weight: 650; }
+  .action-btn { background: #101010; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 650; }
+
+  .block {
+    width: 100%; max-width: 1420px; margin-left: auto; margin-right: auto;
+    border: 1px solid var(--line); border-radius: 14px;
+    background: rgba(248,248,245,.94);
+    padding: 18px 22px; margin-top: 12px;
+    color: #222;
+  }
+  .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .block-head h2 { font-size: 17px; font-weight: 750; letter-spacing: -.03em; margin: 0; }
+  .block-head .status { color: var(--soft-ink); font-size: 10px; font-weight: 600; }
+  .operation-form { display: grid; grid-template-columns: 1.35fr .8fr .6fr .9fr auto; gap: 8px; align-items: end; }
+  .operation-form label { color: #565853; font-weight: 650; display: block; margin-bottom: 5px; }
+  .operation-form input, .operation-form select { width: 100%; background: #fff; color: #222; border: 1px solid #ccc; border-radius: 8px; padding: 8px; }
+  .operation-result { margin-top: 14px; display: none; border-top: 1px solid var(--line); padding-top: 14px; }
+  .operation-result.visible { display: block; }
+  .result-line { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
+  .result-band { font-size: 15px; font-weight: 800; text-transform: uppercase; }
+  .result-meta { color: var(--soft-ink); font-size: 10.5px; }
+  .proposal-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+  .proposal { border: 1px solid var(--line); border-radius: 10px; background: #fff; padding: 12px; }
+  .proposal h3 { margin: 0 0 5px; font-size: 13px; font-weight: 750; }
+  .proposal .status { color: var(--soft-ink); font-size: 9.5px; font-weight: 600; }
+  .proposal .phrase { color: #101010; font-family: var(--mono); font-size: 10px; display: block; margin: 9px 0; padding: 6px 8px; border: 1px dashed #999; border-radius: 8px; background: #fafaf7; }
+  .proposal input { background: #fff; color: #222; border: 1px solid #ccc; border-radius: 8px; padding: 8px; width: 100%; margin: 8px 0 8px; font-family: var(--mono); font-size: 10px; }
+  .proposal .feedback { color: var(--soft-ink); margin-top: 8px; font-size: 10px; }
+  .proposal .feedback .ok { color: #0b7a3d; font-weight: 700; }
+  .proposal .feedback .bad { color: #c12718; font-weight: 700; }
+
+  .ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 620px; }
+  .ledger-fig { border: 1px solid var(--line); border-radius: 11px; background: #fff; padding: 12px 14px; }
+  .ledger-fig strong { display: block; font-size: 28px; font-weight: 700; font-family: var(--mono); }
+  .ledger-fig span { color: var(--soft-ink); font-size: 9.5px; text-transform: uppercase; letter-spacing: .05em; font-weight: 650; }
+  .ledger-note { color: var(--soft-ink); margin-top: 10px; font-size: 10px; }
+  .detail-table { width: 100%; border-collapse: collapse; }
+  .detail-table td { border-top: 1px solid var(--line); padding: 9px 4px; color: var(--soft-ink); font-size: 10.5px; }
+  .detail-table td:first-child { color: var(--ink); font-weight: 650; }
+  .detail-table .cell-mono { font-family: var(--mono); font-size: 9.5px; }
+
+  @media (max-width: 900px) {
+    .dashboard-grid { grid-template-columns: 1fr; grid-template-rows: 560px 300px 300px; }
+    .summary { grid-column: 1; grid-row: 1; }
+    .analytics { grid-column: 1; grid-row: 2; }
+    .geo { grid-column: 1; grid-row: 3; width: 48%; }
+    .alerts { grid-column: 1; grid-row: 3; width: 48%; margin-left: 52%; }
+    .operation-form { grid-template-columns: 1fr 1fr; } .operation-form .dashed { display: none; }
+  }
+  @media (max-width: 620px) {
+    .shell { padding: 12px; }
+    .map-nav { flex-wrap: wrap; height: auto; padding: 10px 12px; }
+    .nav-tags { margin-top: 4px; }
+    .wbgt-dial { right: 20px; }
+    .chips { grid-template-columns: 1fr 1fr; }
+    .operation-form { grid-template-columns: 1fr; }
+    .ledger { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 <div class="shell">
-  <header class="topbar">
-    <div class="brand-sm"><span class="deva">छाया</span> Chhaya</div>
-    <div class="top-actions">
-      <span class="tag" id="tag-mode">mode …</span>
-      <span class="tag" id="tag-site">site …</span>
-      <span class="tag" id="tag-policy">dry-run …</span>
-    </div>
-    <div class="dots"><i></i><i></i><i></i></div>
-  </header>
-
-  <div class="hero">
-    <h1>Heat action console <span class="status">↗</span></h1>
-    <div class="hero-right"><span class="clock" id="clock">12:00 PM</span><span class="clock-label">Local time</span></div>
-  </div>
   <div id="error-banner"></div>
 
   <main class="dashboard-grid">
     <section class="card summary">
-      <div class="card-title"><h2>Verdict</h2><span class="signal" aria-label="System connected"></span></div>
-      <div class="result-band" id="result-band">No screen run yet</div>
-      <div class="mute" id="result-reason">Screen an hour below to get a band from both published engines.</div>
-      <div class="metrics">
-        <div class="metric"><div class="metric-label">Wet-bulb globe temperature</div><div class="dot-chart" id="wbgt-chart"></div><div class="metric-value"><strong id="m-wbgt">—</strong><span>°C</span><em>WBGT</em></div></div>
-        <div class="metric"><div class="metric-label">Heat index</div><div class="dot-chart" id="hi-chart"></div><div class="metric-value"><strong id="m-hi">—</strong><span>°C</span><em>HI</em></div></div>
-        <div class="metric"><div class="metric-label">Air temperature</div><div class="dot-chart" id="air-chart"></div><div class="metric-value"><strong id="m-air">—</strong><span>°C</span><em>T</em></div></div>
-        <div class="metric"><div class="metric-label">Relative humidity</div><div class="dot-chart" id="rh-chart"></div><div class="metric-value"><strong id="m-rh">—</strong><span>%</span><em>RH</em></div></div>
-        <div class="metric"><div class="metric-label">Wind speed</div><div class="dot-chart" id="wind-chart"></div><div class="metric-value"><strong id="m-wind">—</strong><span>m/s</span><em>WS</em></div></div>
+      <div class="map-nav" aria-label="Console bar">
+        <strong>छाया&nbsp;<span>Chhaya</span></strong>
+        <div class="nav-tags">
+          <span class="tag" id="tag-mode">mode …</span>
+          <span class="tag" id="tag-site">site …</span>
+          <span class="tag" id="tag-policy">dry-run …</span>
+          <span class="clock-chip" id="clock">--:--</span>
+        </div>
       </div>
-    </section>
 
-    <section class="card geo">
-      <div class="card-title"><h2>Site &amp; runtime</h2><span class="more">•••</span></div>
-      <table class="detail-table"><tbody id="site-table"></tbody></table>
-    </section>
+      <span class="map-location one">HYDERABAD · HEAT SITE</span>
+      <span class="map-location two" id="map-site">site …</span>
 
-    <section class="card alerts">
-      <div class="card-title"><h2>Advisories</h2></div>
-      <div id="alerts-list"></div>
+      <div class="wbgt-dial"><b id="m-wbgt">—</b><small>WBGT · °C</small></div>
+
+      <div class="band-status">
+        <div class="band" id="hero-band">No screen yet</div>
+        <p id="hero-reason">Screen an hour below to get a band from ISO 7243 and NIOSH — the stricter one decides.</p>
+      </div>
+
+      <div class="chips">
+        <div class="chip"><small>Heat index</small><strong id="chip-hi">—</strong></div>
+        <div class="chip"><small>Air temperature</small><strong id="chip-air">—</strong></div>
+        <div class="chip"><small>Humidity</small><strong id="chip-rh">—</strong></div>
+        <div class="chip"><small>Wind</small><strong id="chip-ws">—</strong></div>
+      </div>
+
+      <div class="map-scale">
+        <div class="scale-labels"><span>NORMAL</span><span>CAUTION</span><span>STOP</span></div>
+        <div class="track"><i id="scale-marker" style="display:none"></i></div>
+        <div class="scale-note">◉ Heat band — <b id="scale-band">stricter of ISO 7243 / NIOSH wins</b></div>
+      </div>
     </section>
 
     <section class="card analytics">
-      <div class="card-title"><h2>Both engines</h2><span class="more">•••</span></div>
-      <div class="analytics-top"><span>ISO 7243 · NIOSH</span><span>Stricter band wins</span></div>
-      <div id="findings"><div class="empty">Findings appear after a screen.</div></div>
+      <div class="analytics-head"><h2>Both engines</h2><span>ISO 7243 · NIOSH — stricter band wins</span></div>
+      <div class="findings" id="findings"><div class="empty">Findings appear after a screen.</div></div>
     </section>
 
-    <section class="card management">
-      <div class="card-title"><h2>Worker‑hours ledger</h2></div>
-      <div class="ledger">
-        <div class="ledger-fig"><strong id="stat-observed">0</strong><span>hazardous worker‑hrs observed</span></div>
-        <div class="ledger-fig"><strong id="stat-covered">0</strong><span>worker‑hrs covered by advisories</span></div>
-      </div>
-      <p class="status" id="stat-assumption" style="margin:0"></p>
+    <section class="card geo">
+      <div class="geo-title">Wind &amp; humidity</div>
+      <div class="geo-read" id="wind-read">—<small>&nbsp;m/s</small></div>
+      <div class="geo-unit">measured at screen hour</div>
+      <div class="geo-orbit"><b id="wind-rh">—<span>RH %</span></b><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="geo-note" id="wind-note">↗ Weather source loads on boot</div>
     </section>
 
-    <aside class="utility">
-      <button id="refresh-btn">⟳ &nbsp;Update data</button>
-      <div class="brand">Chhaya</div>
-      <div class="brand-meta">read-only agent · write-only notifier <span>◉ ◐ ◌</span></div>
-    </aside>
+    <section class="card alerts">
+      <div class="alerts-title"><h2>Advisories</h2><span>standing heat advisories</span></div>
+      <div class="alerts-list" id="alerts-list"></div>
+      <div class="alerts-foot"><b id="alerts-count">0</b><span>active · covered <b id="alerts-covered">0</b> worker-hrs</span></div>
+    </section>
   </main>
 
-  <section class="operations">
-    <div class="operations-head"><h2>Screen an hour</h2><span class="status">Two published engines · stricter band wins</span></div>
+  <section class="block">
+    <div class="block-head"><h2>Screen an hour</h2><span class="status">Two published engines · stricter band wins</span></div>
     <div class="operation-form">
       <div><label for="when">Hour (local)</label><input type="datetime-local" id="when" step="3600" /></div>
       <div><label for="workload">Workload</label><select id="workload"><option value="light">Light</option><option value="moderate">Moderate</option><option value="heavy" selected>Heavy</option><option value="very_heavy">Very heavy</option></select></div>
@@ -218,13 +333,22 @@
   </section>
 
   <section class="block">
-    <div class="block-head"><h2>Escalation clock</h2><span class="status">Unresolved proposals past their window surface here</span></div>
-    <button class="ghost-btn" id="escalation-btn">Check who has waited too long</button>
-    <div id="escalations" style="margin-top:10px"></div>
+    <div class="block-head"><h2>Worker‑hours ledger</h2><span class="status">live from the site store</span></div>
+    <div class="ledger">
+      <div class="ledger-fig"><strong id="stat-observed">0</strong><span>hazardous worker‑hrs observed</span></div>
+      <div class="ledger-fig"><strong id="stat-covered">0</strong><span>worker‑hrs covered by advisories</span></div>
+    </div>
+    <div class="ledger-note" id="stat-assumption"></div>
   </section>
 
   <section class="block">
-    <div class="block-head"><h2>Audit trail</h2><span class="status" id="report-summary">Action records from the site store</span></div>
+    <div class="block-head"><h2>Escalation clock</h2><span class="status">unresolved proposals past their window surface here</span></div>
+    <button class="ghost-btn" id="escalation-btn">Check who has waited too long</button>
+    <div id="escalations" style="margin-top:12px"></div>
+  </section>
+
+  <section class="block">
+    <div class="block-head"><h2>Audit trail</h2><span class="status" id="report-summary">action records from the site store</span></div>
     <table class="detail-table"><tbody id="records"></tbody></table>
   </section>
 </div>
@@ -235,48 +359,39 @@ const api = async (path, opts) => { const res = await fetch(path, opts); const b
 const post = (path, body) => api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
 let supervisor = { name: "Supervisor", roles: ["site_supervisor"] };
 function localInputValue(date) { const p = (n) => String(n).padStart(2, "0"); return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:00`; }
-function dotGrid(target, count, on) { $(target).innerHTML = Array.from({ length: count }, (_, i) => `<i class="${i < on ? "on" : ""}"></i>`).join(""); }
-function scaleCount(value, max) { return Math.max(1, Math.min(105, Math.round((value / max) * 110))); }
 function showError(message) { $("error-banner").textContent = message; $("error-banner").style.display = "block"; setTimeout(() => $("error-banner").style.display = "none", 6000); }
 function updateClock() { const now = new Date(); $("clock").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); if (!$("when").value) { const afternoon = new Date(now); afternoon.setHours(15, 0, 0, 0); $("when").value = localInputValue(afternoon); } }
 function bandClass(band) { return ["normal", "caution", "stop"].includes(band) ? "band-" + band : ""; }
 
 function renderSite(config, policy) {
-  const mode = config.mode + (config.weather_source ? " · " + config.weather_source : "");
   $("tag-mode").textContent = "mode " + config.mode;
   $("tag-mode").className = "tag " + (config.mode === "aws" ? "tag-live" : "");
   $("tag-site").textContent = "site " + config.site_id;
+  $("map-site").textContent = config.site_id.toUpperCase();
   $("tag-policy").textContent = "dry-run " + (config.dry_run ? "on" : "off");
-  $("tag-policy").className = "tag " + (config.dry_run ? "tag-dry" : "tag-live");
-  let supervisorName = "—";
+  $("tag-policy").className = "tag " + (config.dry_run ? "tag-dry" : "");
+  $("wind-note").textContent = "↗ Weather: " + config.weather_source;
   if (policy && policy.site && policy.site.supervisor) {
-    supervisorName = policy.site.supervisor.name;
     supervisor = { name: policy.site.supervisor.name, roles: policy.site.supervisor.roles };
   }
-  $("site-table").innerHTML = [
-    ["Site", config.site_id],
-    ["Supervisor", supervisorName],
-    ["Runtime mode", mode],
-    ["Weather source", config.weather_source],
-    ["Policy fingerprint", config.policy_fingerprint],
-    ["Dry run", config.dry_run ? "Enabled" : "Disabled"],
-  ].map(([k, v]) => `<tr><td>${k}</td><td class="mono">${v}</td></tr>`).join("");
 }
 
 function renderAlerts(state) {
   const advisories = state.advisories || [];
+  const active = advisories.filter((a) => a.active);
+  $("alerts-count").textContent = active.length;
+  $("alerts-covered").textContent = state.ledger.hazardous_worker_hours_covered.toFixed(1);
   $("alerts-list").innerHTML =
     advisories.length
       ? advisories.map((a) => `
           <div class="alert ${a.active ? "active" : ""}">
             <p>${a.action_id.replaceAll("_", " ").toUpperCase()} · ${a.active ? "ACTIVE" : (a.revoked ? "REVOKED" : "EXPIRED")}</p>
             <p class="subtle">${a.reason || "Standing heat advisory"}</p>
-            <time>issued ${a.issued_at} · expires ${a.expires_at || "—"}</time>
+            <time>issued ${a.issued_at}${a.expires_at ? " · expires " + a.expires_at : ""}</time>
             ${a.revoked ? `<time>revoked by ${a.revoked_by}: ${a.revoke_reason}</time>`
               : `<button class="ghost-btn" data-revoke="${a.advisory_id}">Revoke</button>`}
           </div>`).join("")
-      : `<div class="alert active"><p>Monitoring is active</p><p class="subtle">No current heat advisory. Run a screen to evaluate the next hour.</p><time>System ready</time></div>
-         <div class="alert"><p>Verdicts and proposals</p><p class="subtle">The stricter band of ISO and NIOSH wins; approvals must match the exact phrase.</p></div>`;
+      : `<div class="alert active"><p>Monitoring is active</p><p class="subtle">No current heat advisory. Run a screen to evaluate the next hour.</p></div>`;
   $("alerts-list").querySelectorAll("[data-revoke]").forEach((btn) => btn.addEventListener("click", () => revoke(btn.dataset.revoke)));
 }
 
@@ -284,8 +399,8 @@ function renderRecords(state) {
   const records = state.records || [];
   $("report-summary").textContent = `${records.length} action record${records.length === 1 ? "" : "s"} · live from the site store`;
   $("records").innerHTML = records.length
-    ? records.map((r) => `<tr><td class="mono">${r.action_id}</td><td>${r.outcome}</td><td>${r.approver}</td><td class="mute">${r.proposed_at}<br/>${r.verification_detail || ""}</td></tr>`).join("")
-    : `<tr><td colspan="4" class="empty">No action records yet.</td></tr>`;
+    ? records.map((r) => `<tr><td class="cell-mono">${r.action_id}</td><td>${r.outcome}</td><td>${r.approver}</td><td class="cell-mono">${r.proposed_at}</td><td>${r.verification_detail || ""}</td></tr>`).join("")
+    : `<tr><td colspan="5" class="empty">No action records yet.</td></tr>`;
 }
 
 async function refreshState() {
@@ -293,37 +408,48 @@ async function refreshState() {
     const state = await api("/api/state");
     renderAlerts(state);
     renderRecords(state);
-    const ledger = state.ledger;
-    $("stat-observed").textContent = ledger.hazardous_worker_hours_observed.toFixed(1);
-    $("stat-covered").textContent = ledger.hazardous_worker_hours_covered.toFixed(1);
-    $("stat-assumption").textContent = "Covered is measured. Avoided is a counterfactual: " + ledger.avoided_estimate_assumption;
+    $("stat-observed").textContent = state.ledger.hazardous_worker_hours_observed.toFixed(1);
+    $("stat-covered").textContent = state.ledger.hazardous_worker_hours_covered.toFixed(1);
+    $("stat-assumption").textContent = "Covered is measured. Avoided is a counterfactual: " + state.ledger.avoided_estimate_assumption;
   } catch (e) { showError(e.message); }
 }
 
 function applyScreen(body) {
   const triage = body.triage, verdict = triage.verdict, idx = triage.indices;
-  const bands = document.querySelectorAll(".result-band");
-  bands.forEach((el) => { el.textContent = `${verdict.label} · ${verdict.band}`; el.className = "result-band " + bandClass(verdict.band); });
-  $("result-reason").textContent = verdict.reason;
-  $("result-metrics").textContent = "· WBGT " + idx.wbgt_c + " °C · heat index " + idx.heat_index_c + " °C · air " + idx.air_c + " °C";
-  $("m-wbgt").textContent = idx.wbgt_c.toFixed(1); dotGrid("wbgt-chart", 110, scaleCount(idx.wbgt_c, 40));
-  $("m-hi").textContent = idx.heat_index_c.toFixed(1); dotGrid("hi-chart", 110, scaleCount(idx.heat_index_c, 60));
-  $("m-air").textContent = idx.air_c.toFixed(1); dotGrid("air-chart", 110, scaleCount(idx.air_c, 50));
-  $("m-rh").textContent = idx.relative_humidity.toFixed(0); dotGrid("rh-chart", 110, scaleCount(idx.relative_humidity, 100));
-  $("m-wind").textContent = idx.wind_ms.toFixed(1); dotGrid("wind-chart", 110, scaleCount(idx.wind_ms, 15));
+
+  $("m-wbgt").textContent = idx.wbgt_c.toFixed(1);
+  $("hero-band").textContent = verdict.label + " · " + verdict.band;
+  $("hero-reason").textContent = verdict.reason;
+  $("chip-hi").textContent = idx.heat_index_c.toFixed(1) + " °C";
+  $("chip-air").textContent = idx.air_c.toFixed(1) + " °C";
+  $("chip-rh").textContent = idx.relative_humidity.toFixed(0) + " %";
+  $("chip-ws").textContent = idx.wind_ms.toFixed(1) + " m/s";
+
+  const marker = $("scale-marker");
+  marker.style.display = "block";
+  const pos = { normal: "6%", caution: "52%", stop: "94%" }[verdict.band] || "6%";
+  marker.style.left = pos;
+
+  $("wind-read").firstChild.nodeValue = idx.wind_ms.toFixed(1) + " ";
+  $("wind-rh").innerHTML = idx.relative_humidity.toFixed(0) + "<span>RH %</span>";
 
   $("findings").innerHTML = verdict.findings.map((f) => `
     <div class="finding ${f.engine === verdict.deciding_engine ? "deciding" : ""}">
-      <div>
-        <strong>${f.engine}</strong>${f.engine === verdict.deciding_engine ? ' <span class="deciding-tag">◉ deciding</span>' : ""}
-        · <b>${f.band}</b>${f.margin_c === null ? "" : " · margin " + f.margin_c + " °C"}
+      <div class="f-head">
+        <strong>${f.engine}</strong>
+        <span class="f-band ${bandClass(f.band)}">${f.band}</span>
+        ${f.engine === verdict.deciding_engine ? '<span class="deciding-tag">◉ deciding</span>' : ""}
+        ${f.margin_c === null ? "" : `<span class="f-band band-normal">margin ${f.margin_c} °C</span>`}
       </div>
-      <div class="mute">${f.summary}</div>
-      <div class="status">${f.detail}</div>
-      <div class="status">Source: ${f.citation}</div>
+      <div class="f-sum">${f.summary}</div>
+      <div class="f-src">Source: ${f.citation}</div>
     </div>`).join("");
 
   $("operation-result").classList.add("visible");
+  const bands = document.querySelectorAll(".result-band");
+  bands.forEach((el) => { el.textContent = verdict.label + " · " + verdict.band; });
+  $("result-reason").textContent = verdict.reason;
+  $("result-metrics").textContent = "· WBGT " + idx.wbgt_c + " °C · heat index " + idx.heat_index_c + " °C · air " + idx.air_c + " °C";
   $("proposal-list").innerHTML = body.proposals.length
     ? body.proposals.map((proposal) => `
         <article class="proposal">
@@ -350,7 +476,8 @@ async function approve(token) {
   const feedback = $("feedback-" + token);
   try {
     const body = await post("/api/approve", { token, raw_message: $("approval-" + token).value, approver_name: supervisor.name, approver_roles: supervisor.roles, notifier_acknowledged: true });
-    feedback.innerHTML = `<span class="outcome">${body.record.outcome}</span> · ${body.record.verification_outcome} · phrase ${body.record.approval.phrase_matched ? "matched" : "not matched"}`;
+    const ok = body.record.approval.phrase_matched;
+    feedback.innerHTML = `<span class="${ok ? "ok" : "bad"}">${body.record.outcome}</span> · ${body.record.verification_outcome} · phrase ${ok ? "matched" : "not matched"}`;
     await refreshState();
   } catch (e) { feedback.textContent = e.message; }
 }
@@ -367,12 +494,10 @@ async function checkEscalations() {
   const box = $("escalations");
   box.innerHTML = body.fired.length
     ? body.fired.map((f) => `<div class="alert active"><p>${f.action_id.replaceAll("_", " ").toUpperCase()} · waited ${f.waited_minutes} min</p><p class="subtle" style="white-space:pre-wrap">${f.message}</p></div>`).join("")
-    : `<div class="status">Nobody has waited past the window. The clock is quiet.</div>`;
+    : `<div class="empty">Nobody has waited past the window. The clock is quiet.</div>`;
 }
 
 async function boot() {
-  dotGrid("wbgt-chart", 110, 55); dotGrid("hi-chart", 110, 50); dotGrid("air-chart", 110, 52);
-  dotGrid("rh-chart", 110, 58); dotGrid("wind-chart", 110, 40);
   updateClock(); setInterval(updateClock, 60000);
   try {
     const [config, policy] = await Promise.all([api("/api/config"), api("/api/policy")]);
@@ -381,7 +506,6 @@ async function boot() {
   } catch (e) { showError(e.message); }
 }
 
-$("refresh-btn").addEventListener("click", refreshState);
 $("screen-btn").addEventListener("click", screenHour);
 $("escalation-btn").addEventListener("click", checkEscalations);
 boot();
