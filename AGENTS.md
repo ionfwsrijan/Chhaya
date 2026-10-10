@@ -9,7 +9,7 @@ Working notes for AI agents and humans onboarding into Chhaya.
 | `python -m chhaya.cli demo` | Walk the whole safety loop (offline) |
 | `python -m chhaya.cli serve` | Serve the console at http://127.0.0.1:8000 |
 | `python -m chhaya.cli triage` / `escalate` | Run one scheduled Lambda step by hand |
-| `.venv/Scripts/python -m pytest tests/` | Full suite (352 tests) |
+| `.venv/Scripts/python -m pytest tests/` | Full suite (360 tests) |
 | `.venv/Scripts/ruff check src/ tests/` + `format` | Lint / format (line-length 100) |
 | `.venv/Scripts/mypy src/chhaya` | Strict typing gate |
 | `cfn-lint template.yaml` | Validate the SAM template |
@@ -64,7 +64,7 @@ Run everything from the repo root. On Windows the interpreter is
 
 ## Testing
 
-- 352 tests: domain, policy, safety loop, sources, agents, notifiers, stores
+- 360 tests: domain, policy, safety loop, sources, agents, notifiers, stores
   (Local + DynamoDB moto), runtime, API, handlers.
 - `tests/conftest.py` pins the shared fixtures (policy, fake source, etc.).
 - New store features need a LocalStore test **and** a DynamoDB (moto) test.

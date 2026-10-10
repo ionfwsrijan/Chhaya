@@ -20,7 +20,7 @@ a ledger instead?
 verdict winning*, a policy file that names the allowed actions per band, an
 exact-phrase consent check, single-execution dry-run semantics, a store-backed
 verifier, a worker-minutes ledger, and an escalation clock that treats silence
-as a failure mode. 352 tests; the whole loop runs offline in one command.
+as a failure mode. 360 tests; the whole loop runs offline in one command.
 
 **The two sentences I'd underline in the video:** *The model narrates; the
 policy decides.* And: *the ledger labels its own counterfactual.*

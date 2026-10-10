@@ -75,7 +75,7 @@ python -m chhaya.cli escalate   # same function as EscalationFunction
 ## 6) Full verification
 
 ```bash
-make test    # 352 tests incl. DynamoDB via moto (no AWS access needed)
+make test    # 360 tests incl. DynamoDB via moto (no AWS access needed)
 make lint    # ruff, format check, mypy --strict
 python -m pip install cfn-lint && cfn-lint template.yaml
 ```

@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 700" width="1280" height="700" role="img" aria-label="Chhaya system architecture: observe, triage, propose, consent, execute, verify — and where AWS fits">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/>
+    </marker>
+    <style>
+      .n-title { font-family: "Segoe UI", Helvetica, Arial, sans-serif; font-size: 15px; font-weight: 700; fill: #0f172a; }
+      .n-num   { font-family: "Segoe UI", Helvetica, Arial, sans-serif; font-size: 14px; font-weight: 700; fill: #ffffff; }
+      .n-sub   { font-family: "Segoe UI", Helvetica, Arial, sans-serif; font-size: 12px; fill: #475569; }
+      .a-title { font-family: "Segoe UI", Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; fill: #92400e; }
+      .a-sub   { font-family: "Segoe UI", Helvetica, Arial, sans-serif; font-size: 11px; fill: #78350f; }
+      .cap     { font-family: "Segoe UI", Helvetica, Arial, sans-serif; font-size: 13px; font-weight: 700; fill: #b45309; letter-spacing: 1px; }
+      .note    { font-family: "Segoe UI", Helvetica, Arial, sans-serif; font-size: 13px; fill: #334155; }
+    </style>
+  </defs>
+
+  <rect width="1280" height="700" fill="#f8fafc"/>
+
+  <text x="40" y="48" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="24" font-weight="800" fill="#0f172a">Chhaya — system architecture</text>
+  <text x="40" y="74" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" fill="#64748b">One orchestrator. The same functions run under pytest, under make demo, and under AWS Lambda.</text>
+  <rect x="1000" y="40" width="18" height="14" rx="3" fill="#fffbeb" stroke="#f59e0b"/>
+  <text x="1026" y="52" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="13" fill="#64748b">= an AWS managed service</text>
+
+  <!-- ============ safety loop pipeline ============ -->
+  <text x="40" y="120" class="cap">THE LOOP</text>
+
+  <!-- step 1 -->
+  <rect x="40" y="136" width="176" height="138" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="66" cy="162" r="13" fill="#b91c1c"/><text x="62" y="167" class="n-num">1</text>
+  <text x="88" y="167" class="n-title">Observe</text>
+  <text x="56" y="200" class="n-sub">Weather source</text>
+  <text x="56" y="222" class="n-sub">Open-Meteo (live)</text>
+  <text x="56" y="244" class="n-sub">or synthetic/recorded</text>
+
+  <!-- step 2 -->
+  <rect x="240" y="136" width="176" height="138" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="266" cy="162" r="13" fill="#b91c1c"/><text x="262" y="167" class="n-num">2</text>
+  <text x="288" y="167" class="n-title">Triage</text>
+  <text x="256" y="200" class="n-sub">Two engines</text>
+  <text x="256" y="222" class="n-sub">ISO 7243 + NIOSH</text>
+  <text x="256" y="244" class="n-sub">stricter band wins</text>
+
+  <!-- step 3 -->
+  <rect x="440" y="136" width="176" height="138" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="466" cy="162" r="13" fill="#b91c1c"/><text x="462" y="167" class="n-num">3</text>
+  <text x="488" y="167" class="n-title">Propose</text>
+  <text x="456" y="200" class="n-sub">Policy names the</text>
+  <text x="456" y="222" class="n-sub">actions per band —</text>
+  <text x="456" y="244" class="n-sub">never invented</text>
+
+  <!-- step 4 -->
+  <rect x="640" y="136" width="176" height="138" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="666" cy="162" r="13" fill="#b91c1c"/><text x="662" y="167" class="n-num">4</text>
+  <text x="688" y="167" class="n-title">Consent</text>
+  <text x="656" y="200" class="n-sub">A human types the</text>
+  <text x="656" y="222" class="n-sub">exact phrase; a typo</text>
+  <text x="656" y="244" class="n-sub">is refused</text>
+
+  <!-- step 5 -->
+  <rect x="840" y="136" width="176" height="138" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="866" cy="162" r="13" fill="#b91c1c"/><text x="862" y="167" class="n-num">5</text>
+  <text x="888" y="167" class="n-title">Execute</text>
+  <text x="856" y="200" class="n-sub">Runs exactly once</text>
+  <text x="856" y="222" class="n-sub">(dry-run by default),</text>
+  <text x="856" y="244" class="n-sub">idempotent retries</text>
+
+  <!-- step 6 -->
+  <rect x="1040" y="136" width="176" height="138" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <circle cx="1066" cy="162" r="13" fill="#b91c1c"/><text x="1062" y="167" class="n-num">6</text>
+  <text x="1088" y="167" class="n-title">Verify</text>
+  <text x="1056" y="200" class="n-sub">Store-backed proof:</text>
+  <text x="1056" y="222" class="n-sub">advisory + ledger</text>
+  <text x="1056" y="244" class="n-sub">+ audit trail</text>
+
+  <!-- arrows -->
+  <line x1="216" y1="205" x2="236" y2="205" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="416" y1="205" x2="436" y2="205" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="616" y1="205" x2="636" y2="205" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="816" y1="205" x2="836" y2="205" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="1016" y1="205" x2="1036" y2="205" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- escalation feedback -->
+  <path d="M1128 274 C1128 308 1128 308 1128 320" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <path d="M200 320 C760 320 900 320 1128 320" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 4"/>
+  <path d="M728 320 L728 278" fill="none" stroke="#ef4444" stroke-width="1.5" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+  <text x="742" y="314" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="11" fill="#dc2626">if nobody answers in 10 min &#8594; escalate to the site owner</text>
+
+  <!-- ============ AWS strip ============ -->
+  <text x="40" y="352" class="cap">WHERE AWS FITS</text>
+
+  <!-- aws 1 -->
+  <rect x="40" y="366" width="176" height="156" rx="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="56" y="392" class="a-title">Open-Meteo API</text>
+  <text x="56" y="414" class="a-sub">external, no key</text>
+  <text x="56" y="432" class="a-sub">10k calls/day</text>
+  <text x="56" y="450" class="a-sub">sources/openmeteo.py</text>
+
+  <!-- aws 2 -->
+  <rect x="240" y="366" width="176" height="156" rx="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="256" y="392" class="a-title">TriageFunction</text>
+  <text x="256" y="414" class="a-sub">AWS Lambda (arm64)</text>
+  <text x="256" y="432" class="a-sub">EventBridge rate(15 min)</text>
+  <text x="256" y="450" class="a-sub">Bedrock narrator</text>
+  <text x="256" y="468" class="a-sub">LocalAgent fallback</text>
+
+  <!-- aws 3 -->
+  <rect x="440" y="366" width="176" height="156" rx="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="456" y="392" class="a-title">Policy file</text>
+  <text x="456" y="414" class="a-sub">heat_policy_v1.yaml</text>
+  <text x="456" y="432" class="a-sub">strict YAML schema</text>
+  <text x="456" y="450" class="a-sub">policy_fingerprint</text>
+  <text x="456" y="468" class="a-sub">versioned in git</text>
+
+  <!-- aws 4 -->
+  <rect x="640" y="366" width="176" height="156" rx="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="656" y="392" class="a-title">ApiFunction</text>
+  <text x="656" y="414" class="a-sub">Lambda + API Gateway</text>
+  <text x="656" y="432" class="a-sub">Mangum serves the</text>
+  <text x="656" y="450" class="a-sub">same FastAPI console</text>
+  <text x="656" y="468" class="a-sub">web/index.html</text>
+
+  <!-- aws 5 -->
+  <rect x="840" y="366" width="176" height="156" rx="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="856" y="392" class="a-title">Amazon DynamoDB</text>
+  <text x="856" y="414" class="a-sub">single table</text>
+  <text x="856" y="432" class="a-sub">pk=SITE#, sk=KIND#ts</text>
+  <text x="856" y="450" class="a-sub">ADV REC EXP COV PEND</text>
+  <text x="856" y="468" class="a-sub">GSI on gsi1pk</text>
+
+  <!-- aws 6 -->
+  <rect x="1040" y="366" width="176" height="156" rx="12" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+  <text x="1056" y="392" class="a-title">Escalate + SNS</text>
+  <text x="1056" y="414" class="a-sub">EscalationFunction</text>
+  <text x="1056" y="432" class="a-sub">EventBridge rate(5 min)</text>
+  <text x="1056" y="450" class="a-sub">Amazon SNS SMS/email</text>
+  <text x="1056" y="468" class="a-sub">fires once, idempotent</text>
+
+  <!-- ============ invariants note ============ -->
+  <rect x="40" y="556" width="1200" height="118" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="60" y="584" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#0f172a">The invariants that make it shippable</text>
+  <text x="60" y="610" class="note">The policy decides; the agent only narrates. Consent is the literal approval phrase, matched by a case-sensitive word-boundary regex.</text>
+  <text x="60" y="634" class="note">Verification is store-backed. The escalation clock is stored (put_pending / list_pending), so it survives a Lambda cold start — never in memory.</text>
+  <text x="60" y="658" class="note">IAM: read-only agent (bedrock:InvokeModel + dynamo read), write-only notifier (sns:Publish), and store-writes — composed per function. cfn-lint and the tests parse the real template.</text>
+</svg>

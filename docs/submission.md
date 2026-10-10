@@ -10,7 +10,7 @@ This is the map from their criteria to where in this repo the proof lives.
 | **Idea & Impact** | India's HAPs don't reach contract/daily-wage workers (AP/Telangana court findings). A site-level plan that *stops* work with a receipt, minus invented units. | `docs/safety.md`; `docs/LEARNINGS.md` |
 | **Built on AWS** | Bedrock (agent narration), Lambda+API Gateway (the live console), DynamoDB (single-table store), SNS (escalations), EventBridge Scheduler (15/5-min loops). SAM CLI (an AWS open-source tool) deploys it. | `template.yaml`; `src/chhaya/handlers/*`; `docs/architecture.md` |
 | **Design & Usability** | One `web/index.html`, fetch-based, zero build; a supervisor's phone UI. Every action shows its exact approval phrase. A typo is refused and *shown* refused. | `web/index.html`; `/api/*` |
-| **Execution** | 352 tests, 94% coverage, ruff+mypy strict, `cfn-lint` clean. `make demo` runs offline; the console is a live app, not a mockup; Dynamo store tested under moto. | `README.md`, `tests/` |
+| **Execution** | 360 tests, 94% coverage, ruff+mypy strict, `cfn-lint` clean. `make demo` runs offline; the console is a live app, not a mockup; Dynamo store tested under moto. | `README.md`, `tests/` |
 | **Demo video** | 3-minute script below; shows failure (typo refused), decision (two-engine verdict), and closure (advisory + ledger + escalation). | `docs/submission.md` §Video |
 
 ## The demo script (console, 3 minutes)
