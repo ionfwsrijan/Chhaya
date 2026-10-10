@@ -9,18 +9,20 @@ not twice — per unanswered proposal.
 from __future__ import annotations
 
 import io
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from chhaya.agent import LocalAgent
 from chhaya.domain.bands import Band
 from chhaya.domain.heat import HeatInputs
 from chhaya.domain.workload import Workload
+from chhaya.handlers.api import _strip_stage
 from chhaya.handlers.escalation import run_escalation_check
 from chhaya.handlers.triage import event_time, run_scheduled_triage
 from chhaya.notify import LogNotifier
 from chhaya.policy import load_policy
 from chhaya.runtime import Runtime
+from chhaya.safety import PendingProposal
 from chhaya.settings import load_settings
 from chhaya.sources.fake import FakeSource, Scenario
 from chhaya.store import LocalStore
@@ -55,6 +57,36 @@ class TestEventTime:
         assert event_time({}, fallback=datetime(2026, 5, 18, 9, 30)) == datetime(
             2026, 5, 18, 9, 30, 0
         )
+
+
+class TestApiHandlerPath:
+    def test_strips_named_stage_prefix(self) -> None:
+        event = {
+            "version": "2.0",
+            "rawPath": "/prod/api/health",
+            "requestContext": {"stage": "prod", "http": {"path": "/prod/api/health"}},
+        }
+        _strip_stage(event)
+        assert event["rawPath"] == "/api/health"
+        assert event["requestContext"]["http"]["path"] == "/api/health"
+
+    def test_strips_stage_to_root(self) -> None:
+        event = {"rawPath": "/prod", "requestContext": {"stage": "prod", "http": {"path": "/prod"}}}
+        _strip_stage(event)
+        assert event["rawPath"] == "/"
+
+    def test_leaves_default_stage_alone(self) -> None:
+        event = {
+            "rawPath": "/api/health",
+            "requestContext": {"stage": "$default", "http": {"path": "/api/health"}},
+        }
+        _strip_stage(event)
+        assert event["rawPath"] == "/api/health"
+
+    def test_no_stage_is_a_noop(self) -> None:
+        event = {"rawPath": "/api/health", "requestContext": {}}
+        _strip_stage(event)
+        assert event["rawPath"] == "/api/health"
 
 
 class TestScheduledTriage:
@@ -124,3 +156,36 @@ class TestEscalationClock:
 
         first = run_escalation_check(runtime, when + timedelta(hours=1))
         assert first["fired"] == []
+
+
+class TestTimezoneNormalisation:
+    """An aware timestamp must never leak into the naive clock the engines use.
+
+    A client that sends ``2026-05-18T15:00:00Z`` used to write an aware
+    ``proposed_at`` into the store; the scheduled escalation check then read it
+    back aware and crashed subtracting it from EventBridge's naive clock. Both
+    the request boundary and the store's deserialiser now fold the offset down.
+    """
+
+    def _aware_pending(self) -> PendingProposal:
+        return PendingProposal(
+            site_id=SITE,
+            action_id="stop_work",
+            band_at_proposal=Band.STOP,
+            wbgt_c=35.0,
+            proposed_at=datetime(2026, 5, 18, 15, 0, 0, tzinfo=UTC),
+            requires_stop=True,
+        )
+
+    def test_aware_pending_reads_back_naive(self, tmp_path: Path) -> None:
+        runtime = _runtime(tmp_path, peak_air_c=44.0)
+        runtime.store.put_pending(self._aware_pending())
+        read = runtime.store.list_pending(SITE, unresolved_only=True)[0]
+        assert read.proposed_at == datetime(2026, 5, 18, 15, 0, 0)
+        assert read.proposed_at.tzinfo is None
+
+    def test_escalation_survives_an_aware_pending(self, tmp_path: Path) -> None:
+        runtime = _runtime(tmp_path, peak_air_c=44.0)
+        runtime.store.put_pending(self._aware_pending())
+        fired = run_escalation_check(runtime, datetime(2026, 5, 18, 15, 30, 0))
+        assert len(fired["fired"]) == 1

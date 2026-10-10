@@ -238,3 +238,22 @@ class TestEscalation:
             json={"now": (HOT_HOUR + timedelta(minutes=2)).isoformat()},
         ).json()
         assert body["fired"] == []
+
+
+class TestAwareTimestamps:
+    """A client that sends a ``Z`` timestamp must not poison the naive clock."""
+
+    def test_aware_when_is_stored_naive(self, client: TestClient) -> None:
+        body = client.post("/api/triage", json={"when": "2026-05-18T15:00:00Z"}).json()
+        assert body["proposals"]
+        for proposal in body["proposals"]:
+            assert datetime.fromisoformat(proposal["proposed_at"]).tzinfo is None
+
+    def test_aware_triage_then_naive_escalation_check(self, client: TestClient) -> None:
+        client.post("/api/triage", json={"when": "2026-05-18T15:00:00Z"})
+        response = client.post(
+            "/api/escalations/check",
+            json={"now": (HOT_HOUR + timedelta(minutes=15)).isoformat()},
+        )
+        assert response.status_code == 200
+        assert len(response.json()["fired"]) >= 1

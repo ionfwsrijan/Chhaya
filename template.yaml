@@ -9,10 +9,20 @@ Description: >
   Lambda, through API Gateway, via Mangum.
 
 Parameters:
+  AgentBackend:
+    Type: String
+    Default: local
+    AllowedValues: [bedrock, local]
+    Description: >-
+      Which agent writes the supervisor-facing reasoning. `local` is the
+      scripted fallback that works without any Bedrock model access. Switch to
+      `bedrock` after enabling model access in the Bedrock console
+      (any provider, e.g. Amazon Nova) and redeploy with
+      --parameter-overrides AgentBackend=bedrock.
   BedrockModelId:
     Type: String
-    Default: anthropic.claude-3-haiku-20240307-v1:0
-    Description: Amazon Bedrock model used to draft supervisor-facing reasoning.
+    Default: apac.anthropic.claude-3-haiku-20240307-v1:0
+    Description: Amazon Bedrock inference profile used to draft supervisor-facing reasoning.
   SiteOwnerPhone:
     Type: String
     Default: ""
@@ -38,9 +48,10 @@ Globals:
     Tracing: Active
     Environment:
       Variables:
+        PYTHONPATH: /var/task/src
         CHHAYA_MODE: aws
         CHHAYA_SOURCE: openmeteo
-        CHHAYA_AGENT: bedrock
+        CHHAYA_AGENT: !Ref AgentBackend
         CHHAYA_NOTIFIER: sns
         CHHAYA_BEDROCK_MODEL_ID: !Ref BedrockModelId
         CHHAYA_DYNAMO_TABLE: !Ref HeatTable
@@ -109,7 +120,16 @@ Resources:
           - Sid: BedrockReadReasoning
             Effect: Allow
             Action: ["bedrock:InvokeModel"]
-            Resource: !Sub "arn:aws:bedrock:${AWS::Region}:${AWS::AccountId}:foundation-model/*"
+            Resource:
+              - !Sub "arn:aws:bedrock:*::foundation-model/*"
+              - !Sub "arn:aws:bedrock:*:${AWS::AccountId}:inference-profile/*"
+
+  ReadStorePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
           - Sid: ReadStore
             Effect: Allow
             Action: ["dynamodb:GetItem", "dynamodb:Query"]
@@ -152,6 +172,7 @@ Resources:
       Handler: chhaya.handlers.api.handler
       Policies:
         - !GetAtt AgentPolicy.PolicyArn
+        - !GetAtt ReadStorePolicy.PolicyArn
         - !GetAtt NotifierPolicy.PolicyArn
         - !GetAtt WriteStorePolicy.PolicyArn
       Events:
@@ -162,9 +183,6 @@ Resources:
             Path: /{proxy+}
             Method: ANY
             PayloadFormatVersion: "2.0"
-      Environment:
-        Variables:
-          CHHAYA_AGENT: bedrock
 
   ConsoleApi:
     Type: AWS::Serverless::HttpApi
@@ -178,6 +196,7 @@ Resources:
       Handler: chhaya.handlers.triage.handler
       Policies:
         - !GetAtt AgentPolicy.PolicyArn
+        - !GetAtt ReadStorePolicy.PolicyArn
         - !GetAtt WriteStorePolicy.PolicyArn
       Events:
         EveryFifteenMinutes:
@@ -193,6 +212,7 @@ Resources:
       CodeUri: .
       Handler: chhaya.handlers.escalation.handler
       Policies:
+        - !GetAtt ReadStorePolicy.PolicyArn
         - !GetAtt NotifierPolicy.PolicyArn
         - !GetAtt WriteStorePolicy.PolicyArn
       Events:

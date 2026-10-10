@@ -9,7 +9,7 @@ backends, no drift.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from chhaya.domain.bands import Band
@@ -30,7 +30,16 @@ __all__ = [
 
 
 def iso(value: str) -> datetime:
-    return datetime.fromisoformat(value)
+    """Parse a stored timestamp into the naive-UTC convention used everywhere.
+
+    Older rows may carry an explicit ``+00:00`` offset (written before the
+    request boundary normalised it). Folding the offset down keeps a stored
+    pending proposal comparable to the clock the scheduled handlers read.
+    """
+    parsed = datetime.fromisoformat(value)
+    if parsed.tzinfo is not None:
+        return parsed.astimezone(UTC).replace(tzinfo=None)
+    return parsed
 
 
 def advisory_from(row: dict[str, Any]) -> StandingAdvisory:
