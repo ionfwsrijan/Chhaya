@@ -1470,7 +1470,7 @@
   .statement-banner-bg {
     position: absolute;
     inset: 0;
-    background-image: url("/assets/images/industrial-site-heat.jpg");
+    background-image: url("assets/images/industrial-site-heat.jpg");
     background-size: cover;
     background-position: center;
     filter: brightness(0.2) contrast(1.15);
@@ -1733,7 +1733,7 @@
         <div class="hero-media-wrapper">
           <span class="hud-crosshair">+ 17.4977° N, 78.3844° E</span>
           <img
-            src="/assets/images/hero-worker-heat.jpg"
+            src="assets/images/hero-worker-heat.jpg"
             alt="Industrial infrastructure worker in hard hat and high visibility vest on elevated concrete worksite under intense sunlight"
             class="hero-photo"
             loading="eager"
@@ -1802,7 +1802,7 @@
           <div class="workflow-media">
             <span class="workflow-badge">PHASE 01 // TRIAGE</span>
             <img
-              src="/assets/images/industrial-site-heat.jpg"
+              src="assets/images/industrial-site-heat.jpg"
               alt="Elevated metro rail construction viaduct under harsh sunlight"
               class="workflow-img"
               loading="lazy"
@@ -1825,7 +1825,7 @@
           <div class="workflow-media">
             <span class="workflow-badge">PHASE 02 // CONSENT</span>
             <img
-              src="/assets/images/ppe-gear-inspection.jpg"
+              src="assets/images/ppe-gear-inspection.jpg"
               alt="Protective gear, helmet, safety harness, and WBGT environmental monitor"
               class="workflow-img"
               loading="lazy"
@@ -1848,7 +1848,7 @@
           <div class="workflow-media">
             <span class="workflow-badge">PHASE 03 // EXECUTION</span>
             <img
-              src="/assets/images/shade-hydration-break.jpg"
+              src="assets/images/shade-hydration-break.jpg"
               alt="Workers resting and drinking clean water in a shaded canopy rest area"
               class="workflow-img"
               loading="lazy"
@@ -2251,7 +2251,9 @@
 
   // API helper
   async function api(path, opts = {}) {
-    const res = await fetch(path, opts);
+    // Keep requests under the current deployment prefix (for example /prod/).
+    const url = new URL(path.replace(/^\/+/, ""), document.baseURI);
+    const res = await fetch(url, opts);
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       const err = new Error(data.detail || `${res.status} ${res.statusText}`);
