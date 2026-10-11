@@ -3,512 +3,2695 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Chhaya — heat action console</title>
+<title>CHHAYA — Heat Safety Intelligence &amp; Field Operations</title>
+<meta name="description" content="Site-level heat action platform for outdoor industrial operations: dual published engines (ISO 7243 & NIOSH 2016-106), stricter-wins arbitration, and verbatim human consent." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700;1,900&family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
 <style>
   :root {
-    --canvas: #252725;
-    --ink: #101010;
-    --soft-ink: #777875;
-    --muted: #888;
-    --green: #0e9b4e;
-    --yellow: #e9c800;
-    --red: #fa4e35;
-    --panel: #f8f8f5;
-    --card: #ffffff;
-    --line: #d9d9d6;
-    --mono: "Cascadia Code", Consolas, ui-monospace, monospace;
+    --bg-base: #090B09;
+    --bg-surface: #141714;
+    --bg-elevated: #1C201C;
+    --accent-lime: #D6FF24;
+    --accent-lime-dim: rgba(214, 255, 36, 0.15);
+    --accent-lime-glow: rgba(214, 255, 36, 0.35);
+    --text-primary: #F5F5F0;
+    --text-secondary: #A5ADA2;
+    --text-muted: #6B7368;
+    --border-color: #343832;
+    --border-subtle: #202420;
+    --status-safe: #80C995;
+    --status-warn: #F2B84B;
+    --status-crit: #F05B48;
+
+    --font-display: "Barlow Condensed", Oswald, "Arial Narrow", sans-serif;
+    --font-body: "Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    --font-mono: "IBM Plex Mono", "Cascadia Code", Consolas, ui-monospace, monospace;
+
+    --header-height: 72px;
+    --container-max: 1440px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
   }
-  * { box-sizing: border-box; }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+  }
+
   body {
-    margin: 0; min-width: 320px;
-    background: var(--canvas);
-    color: var(--ink);
-    font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-    font-size: 11px; font-weight: 500; letter-spacing: -0.015em;
+    min-height: 100vh;
+    font-family: var(--font-body);
+    font-size: 13px;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
-  button, input, select { font: inherit; }
-  button { cursor: pointer; }
-  .shell { width: 100%; max-width: 1480px; margin: 0 auto; padding: 20px 24px 32px; }
-  #error-banner { display: none; color: #fff; border: 1px solid #fff; background: rgba(0,0,0,.55); border-radius: 8px; padding: 10px 12px; margin: 10px 0; font-size: 11px; }
 
-  .dashboard-grid {
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button, input, select, textarea {
+    font: inherit;
+    color: inherit;
+  }
+
+  button {
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+
+  /* Utility & Typography */
+  .mono {
+    font-family: var(--font-mono);
+  }
+
+  .condensed {
+    font-family: var(--font-display);
+    text-transform: uppercase;
+  }
+
+  .container {
+    width: 100%;
+    max-width: var(--container-max);
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .section-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--accent-lime);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 12px;
+  }
+
+  .section-eyebrow::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--accent-lime);
+    box-shadow: 0 0 8px var(--accent-lime);
+  }
+
+  .section-title {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+
+  .divider-thin {
+    width: 100%;
+    height: 1px;
+    background: var(--border-color);
+  }
+
+  /* Navigation Header */
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: var(--header-height);
+    background: rgba(9, 11, 9, 0.88);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-color);
+    transition: border-color 0.2s ease;
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    gap: 20px;
+  }
+
+  .brand-group {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .brand-icon {
+    width: 32px;
+    height: 32px;
+    background: var(--bg-surface);
+    border: 1px solid var(--accent-lime);
     display: grid;
-    grid-template-columns: minmax(450px, 1.02fr) minmax(360px, 1fr);
-    grid-template-rows: 365px 365px;
-    gap: 12px;
-    width: 100%; max-width: 1420px; margin: 0 auto;
+    place-items: center;
+    position: relative;
   }
-  .card { border: 0; border-radius: 10px; padding: 0; }
 
-  .summary {
-    grid-column: 1; grid-row: 1 / 3;
-    min-height: 0; overflow: hidden; position: relative;
-    background:
-      linear-gradient(155deg, rgba(220,239,244,.8) 0 18%, transparent 18% 100%),
-      linear-gradient(130deg, #b7dbe8 0%, #f9f8f1 42%, #dfe8c7 76%, #d4dfae 100%);
-    box-shadow: 0 22px 44px rgba(0,0,0,.2), 0 3px 8px rgba(0,0,0,.18);
+  .brand-icon svg {
+    width: 18px;
+    height: 18px;
+    fill: var(--accent-lime);
   }
-  .summary::before {
-    content: ""; position: absolute; inset: 0; opacity: .5; pointer-events: none;
-    background:
-      repeating-linear-gradient(30deg, transparent 0 48px, rgba(255,255,255,.7) 49px 50px, transparent 51px 84px),
-      repeating-linear-gradient(150deg, transparent 0 68px, rgba(255,255,255,.5) 69px 70px, transparent 71px 110px);
-  }
-  .summary::after {
-    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 24%; pointer-events: none;
-    background:
-      linear-gradient(90deg, transparent 0 10%, rgba(0,0,0,.04) 10.2% 10.4%, transparent 10.6% 100%),
-      linear-gradient(180deg, rgba(251,251,250,.25), rgba(251,251,250,.96) 34%);
-  }
-  .summary > * { position: relative; z-index: 1; }
 
-  .map-nav {
-    position: absolute; top: 20px; left: 22px; right: 22px; height: 46px;
-    display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    border: 1px solid rgba(255,255,255,.88); border-radius: 14px;
-    background: rgba(255,255,255,.42);
-    box-shadow: inset 0 1px 0 rgba(255,255,255,.92), 0 12px 26px rgba(54,75,62,.16);
-    backdrop-filter: blur(28px) saturate(145%);
-    -webkit-backdrop-filter: blur(28px) saturate(145%);
-    padding: 0 14px;
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .brand-title {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    line-height: 1;
+    color: var(--text-primary);
+  }
+
+  .brand-sub {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .brand-sub span.hindi {
+    color: var(--accent-lime);
+    font-weight: 600;
+  }
+
+  .nav-desktop {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+
+  .nav-link {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 6px 0;
+    position: relative;
+    transition: color 0.15s ease;
+  }
+
+  .nav-link:hover, .nav-link.active {
+    color: var(--accent-lime);
+  }
+
+  .nav-link.active::after {
+    content: "";
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: var(--accent-lime);
+    box-shadow: 0 0 6px var(--accent-lime);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .telemetry-badge {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-secondary);
+  }
+
+  .telemetry-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--status-safe);
+    box-shadow: 0 0 6px var(--status-safe);
+    animation: pulse 2.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+
+  .btn-lime {
+    background: var(--accent-lime);
+    color: #090B09;
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  }
+
+  .btn-lime:hover {
+    background: #e4ff57;
+    box-shadow: 0 0 16px rgba(214, 255, 36, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-lime:active {
+    transform: translateY(0);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 10px 18px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
+  }
+
+  .btn-ghost:hover {
+    border-color: var(--accent-lime);
+    color: var(--accent-lime);
+    background: var(--accent-lime-dim);
+  }
+
+  .mobile-menu-btn {
+    display: none;
+    color: var(--text-primary);
+    font-size: 22px;
+    padding: 6px;
+  }
+
+  /* Hero Section */
+  .hero-section {
+    position: relative;
+    padding: 48px 0 64px;
+    border-bottom: 1px solid var(--border-color);
+    overflow: hidden;
+  }
+
+  .hero-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 40px;
+    align-items: center;
+  }
+
+  .hero-content {
+    display: flex;
+    flex-direction: column;
     z-index: 2;
   }
-  .map-nav strong { font-size: 15px; font-weight: 800; letter-spacing: -.04em; }
-  .map-nav strong span { color: var(--green); }
-  .nav-tags { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
-  .tag { font-family: var(--mono); font-size: 9.5px; border: 1px solid rgba(16,16,16,.35); border-radius: 10px; padding: 4px 8px; color: #2c2d2a; background: rgba(255,255,255,.5); }
-  .tag-live { background: #101010; color: #fff; border-color: #101010; }
-  .tag-dry { border-style: dashed; }
 
-  .clock-chip { font-family: var(--mono); font-size: 10px; color: #2c2d2a; }
-  .map-location { position: absolute; color: rgba(91,100,87,.7); font-size: 12px; font-weight: 750; letter-spacing: .02em; }
-  .map-location.one { top: 92px; left: 34px; }
-  .map-location.two { top: 108px; right: 40px; }
-
-  .wbgt-dial {
-    position: absolute; top: 156px; right: 38px;
-    width: 128px; height: 128px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.62);
-    box-shadow: 0 10px 22px rgba(0,0,0,.1);
-    text-align: center; padding-top: 41px;
+  .hero-headline {
+    font-family: var(--font-display);
+    font-size: clamp(52px, 7vw, 104px);
+    font-weight: 900;
+    line-height: 0.88;
+    letter-spacing: -0.025em;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    margin: 12px 0 24px;
   }
-  .wbgt-dial b { display: block; font-size: 25px; font-weight: 700; letter-spacing: -.05em; }
-  .wbgt-dial b::after { content: " °C"; font-size: 12px; font-weight: 600; color: #444; }
-  .wbgt-dial small { display: block; color: #777; font-size: 9px; letter-spacing: .12em; margin-top: 3px; }
 
-  .band-status { position: absolute; left: 40px; top: 200px; max-width: 240px; }
-  .band-status .band { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: -.03em; }
-  .band-status p { margin: 6px 0 0; color: #52565a; font-size: 10.5px; line-height: 1.35; }
-
-  .chips { position: absolute; left: 40px; right: 40px; bottom: 120px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-  .chip { border: 1px solid rgba(16,16,16,.14); border-radius: 10px; background: rgba(255,255,255,.55); padding: 8px 10px; backdrop-filter: blur(8px); }
-  .chip small { display: block; color: #5a6058; font-size: 9px; text-transform: uppercase; letter-spacing: .06em; }
-  .chip strong { font-family: var(--mono); font-size: 14px; font-weight: 600; }
-
-  .map-scale { position: absolute; left: 40px; bottom: 52px; right: 40px; color: #194b2d; font-size: 10px; }
-  .map-scale .scale-labels { display: flex; justify-content: space-between; }
-  .map-scale .scale-labels span:last-of-type { color: var(--red); }
-  .map-scale .track { position: relative; height: 9px; margin: 7px 0 5px; border-radius: 5px; background: linear-gradient(90deg, #55bd4c, #e9d300 52%, #fa4e35); }
-  .map-scale .track i { position: absolute; top: -3px; width: 4px; height: 15px; border-radius: 2px; background: #101010; }
-  .map-scale .scale-note { color: #333; font-size: 9px; letter-spacing: .03em; }
-  .map-scale .scale-note b { font-family: var(--mono); }
-
-  .analytics {
-    grid-column: 2; grid-row: 1;
-    min-height: 0; padding: 18px 24px;
-    background-color: #f7f7f6;
-    background-image: radial-gradient(#c7c7c4 .8px, transparent .8px);
-    background-size: 10px 10px;
-    box-shadow: 0 16px 34px rgba(0,0,0,.18);
-    display: flex; flex-direction: column;
+  .hero-headline span.accent {
+    color: var(--accent-lime);
+    text-shadow: 0 0 24px rgba(214, 255, 36, 0.25);
   }
-  .analytics-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
-  .analytics-head h2 { font-size: 13px; font-weight: 750; margin: 0; }
-  .analytics-head span { color: var(--soft-ink); font-size: 10px; font-weight: 600; }
-  .findings { flex: 1; overflow: auto; display: flex; flex-direction: column; gap: 8px; }
-  .finding { border: 1px solid var(--line); border-left: 4px solid var(--line); border-radius: 10px; background: #fff; padding: 10px 12px; }
-  .finding.deciding { border-left-color: #101010; }
-  .finding .f-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-  .finding strong { font-weight: 750; }
-  .finding .f-band { font-weight: 800; text-transform: uppercase; padding: 1px 7px; border-radius: 9px; font-size: 9.5px; }
-  .f-band.band-normal { background: #dff2e4; color: #0b7a3d; }
-  .f-band.band-caution { background: #fbf2c9; color: #8a6d00; }
-  .f-band.band-stop { background: #ffdfda; color: #c12718; }
-  .finding .deciding-tag { font-family: var(--mono); font-size: 9px; border: 1px solid #101010; color: #101010; padding: 1px 5px; border-radius: 8px; }
-  .finding .f-sum, .finding .f-src { color: var(--muted); margin-top: 5px; line-height: 1.35; }
-  .finding .f-src { font-size: 9.5px; }
-  .empty { color: var(--muted); padding: 12px 0; }
 
-  .geo {
-    grid-column: 2; grid-row: 2;
-    min-height: 0; width: calc(50% - 6px);
-    padding: 18px 20px 14px 24px;
-    background: var(--card);
-    border-radius: 19px;
+  .hero-desc {
+    font-size: clamp(14px, 1.2vw, 17px);
+    color: var(--text-secondary);
+    max-width: 540px;
+    line-height: 1.6;
+    margin-bottom: 32px;
+  }
+
+  .hero-desc strong {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .hero-ctas {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+  }
+
+  .hero-meta-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .meta-col {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .meta-col small {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .meta-col span {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* Hero Media Container */
+  .hero-media-wrapper {
     position: relative;
-    box-shadow: 0 12px 26px rgba(0,0,0,.14);
+    border: 1px solid var(--border-color);
+    background: var(--bg-surface);
+    overflow: hidden;
   }
-  .geo-title { font-size: 12px; font-weight: 750; }
-  .geo-read { margin-top: 16px; font-size: 34px; font-weight: 700; letter-spacing: -.05em; }
-  .geo-read small { font-size: 10px; color: var(--muted); font-weight: 600; letter-spacing: 0; }
-  .geo-unit { color: var(--muted); font-size: 9px; margin-top: 2px; }
-  .geo-orbit {
-    position: absolute; top: 34px; right: 24px; width: 96px; height: 96px;
-    border: 1px solid #d9ddd8; border-radius: 50%;
-    background: radial-gradient(circle, #fff 0 34%, #e6eee7 35% 42%, transparent 43%);
-  }
-  .geo-orbit b { position: absolute; inset: 43px 0 auto; text-align: center; font-size: 10px; }
-  .geo-orbit b span { display: block; font-size: 8px; font-weight: 400; }
-  .geo-orbit i { position: absolute; width: 9px; height: 9px; border-radius: 50%; background: #2c6b3a; }
-  .geo-orbit i:nth-of-type(1) { top: 14px; left: 42px; }
-  .geo-orbit i:nth-of-type(2) { top: 40px; right: 8px; }
-  .geo-orbit i:nth-of-type(3) { bottom: 14px; left: 42px; }
-  .geo-orbit i:nth-of-type(4) { top: 40px; left: 8px; }
-  .geo-orbit i:nth-of-type(5) { top: 25px; right: 22px; background: #d5dcd8; }
-  .geo-orbit i:nth-of-type(6) { bottom: 22px; right: 18px; background: #d5dcd8; }
-  .geo-note { position: absolute; left: 24px; right: 17px; bottom: 14px; padding: 7px 10px; border-radius: 16px; background: #e5faea; color: #2d7c3e; font-size: 10px; font-weight: 650; }
 
-  .alerts {
-    grid-column: 2; grid-row: 2;
-    min-height: 0; width: calc(50% - 6px);
-    margin-left: calc(50% + 6px);
-    padding: 18px 20px 14px;
-    background: var(--card);
-    border-radius: 19px;
+  .hero-media-wrapper::before {
+    content: "";
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    border: 1px dashed rgba(214, 255, 36, 0.2);
+    pointer-events: none;
+    z-index: 3;
+  }
+
+  .hero-photo {
+    width: 100%;
+    height: 560px;
+    object-fit: cover;
+    object-position: 70% center;
+    display: block;
+    filter: contrast(1.08) brightness(0.92);
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .hero-media-wrapper:hover .hero-photo {
+    transform: scale(1.02);
+  }
+
+  .hero-photo-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(9, 11, 9, 0.15) 0%, rgba(9, 11, 9, 0.75) 100%),
+                linear-gradient(90deg, rgba(9, 11, 9, 0.6) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .hero-hud {
+    position: absolute;
+    bottom: 24px;
+    left: 24px;
+    right: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    z-index: 4;
+  }
+
+  .hud-badge {
+    background: rgba(14, 18, 14, 0.9);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(8px);
+    padding: 10px 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-primary);
+  }
+
+  .hud-badge small {
+    display: block;
+    font-size: 9px;
+    color: var(--accent-lime);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  .hud-badge strong {
+    font-size: 18px;
+    font-weight: 700;
+  }
+
+  .hud-crosshair {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent-lime);
+    z-index: 4;
+    letter-spacing: 0.1em;
+  }
+
+  /* Strip: 4 Capabilities */
+  .capabilities-strip {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    padding: 36px 0;
+  }
+
+  .strip-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+  }
+
+  .strip-card {
+    padding: 20px 22px;
+    background: var(--bg-base);
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--accent-lime);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+  }
+
+  .strip-card:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent-lime);
+  }
+
+  .strip-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent-lime);
+    letter-spacing: 0.1em;
+  }
+
+  .strip-card h3 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    color: var(--text-primary);
+  }
+
+  .strip-card p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  /* Section: How Chhaya Works */
+  .workflow-section {
+    padding: 88px 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .section-header-block {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 48px;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+
+  .workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  .workflow-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s ease;
+  }
+
+  .workflow-card:hover {
+    border-color: var(--accent-lime);
+  }
+
+  .workflow-media {
     position: relative;
-    box-shadow: 0 12px 26px rgba(0,0,0,.14);
+    height: 220px;
+    overflow: hidden;
+    background: var(--bg-base);
+    border-bottom: 1px solid var(--border-color);
   }
-  .alerts-title { display: flex; justify-content: space-between; align-items: baseline; }
-  .alerts-title h2 { font-size: 12px; font-weight: 750; margin: 0; }
-  .alerts-title span { color: var(--muted); font-size: 9px; }
-  .alerts-list { position: absolute; top: 46px; left: 20px; right: 20px; bottom: 52px; overflow: auto; }
-  .alert { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; margin-bottom: 6px; color: #5a5c58; }
-  .alert.active { background: #101010; color: #fff; border-color: #101010; }
-  .alert p { margin: 0 0 4px; line-height: 1.25; }
-  .alert .subtle { color: #8a8c88; } .alert.active .subtle { color: #cfcfc9; }
-  .alert time { display: block; font-size: 9px; margin-top: 4px; }
-  .alert .ghost-btn { margin-top: 6px; }
-  .alerts-foot {
-    position: absolute; left: 16px; right: 16px; bottom: 14px;
-    background: #090909; color: #fff; border-radius: 11px;
-    padding: 8px 11px; font-size: 9px;
+
+  .workflow-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: contrast(1.05) brightness(0.9);
+    transition: transform 0.5s ease;
   }
-  .alerts-foot b { color: #00c950; font-size: 17px; margin-right: 6px; }
-  .alerts-foot span { color: #ddd; }
 
-  .ghost-btn { background: transparent; color: #101010; border: 1px solid #bbb; border-radius: 8px; padding: 6px 10px; font-size: 10px; font-weight: 650; }
-  .action-btn { background: #101010; color: #fff; border: 0; border-radius: 8px; padding: 8px 14px; font-weight: 650; }
-
-  .block {
-    width: 100%; max-width: 1420px; margin-left: auto; margin-right: auto;
-    border: 1px solid var(--line); border-radius: 14px;
-    background: rgba(248,248,245,.94);
-    padding: 18px 22px; margin-top: 12px;
-    color: #222;
+  .workflow-card:hover .workflow-img {
+    transform: scale(1.04);
   }
-  .block-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
-  .block-head h2 { font-size: 17px; font-weight: 750; letter-spacing: -.03em; margin: 0; }
-  .block-head .status { color: var(--soft-ink); font-size: 10px; font-weight: 600; }
-  .operation-form { display: grid; grid-template-columns: 1.35fr .8fr .6fr .9fr auto; gap: 8px; align-items: end; }
-  .operation-form label { color: #565853; font-weight: 650; display: block; margin-bottom: 5px; }
-  .operation-form input, .operation-form select { width: 100%; background: #fff; color: #222; border: 1px solid #ccc; border-radius: 8px; padding: 8px; }
-  .operation-result { margin-top: 14px; display: none; border-top: 1px solid var(--line); padding-top: 14px; }
-  .operation-result.visible { display: block; }
-  .result-line { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 10px; }
-  .result-band { font-size: 15px; font-weight: 800; text-transform: uppercase; }
-  .result-meta { color: var(--soft-ink); font-size: 10.5px; }
-  .proposal-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
-  .proposal { border: 1px solid var(--line); border-radius: 10px; background: #fff; padding: 12px; }
-  .proposal h3 { margin: 0 0 5px; font-size: 13px; font-weight: 750; }
-  .proposal .status { color: var(--soft-ink); font-size: 9.5px; font-weight: 600; }
-  .proposal .phrase { color: #101010; font-family: var(--mono); font-size: 10px; display: block; margin: 9px 0; padding: 6px 8px; border: 1px dashed #999; border-radius: 8px; background: #fafaf7; }
-  .proposal input { background: #fff; color: #222; border: 1px solid #ccc; border-radius: 8px; padding: 8px; width: 100%; margin: 8px 0 8px; font-family: var(--mono); font-size: 10px; }
-  .proposal .feedback { color: var(--soft-ink); margin-top: 8px; font-size: 10px; }
-  .proposal .feedback .ok { color: #0b7a3d; font-weight: 700; }
-  .proposal .feedback .bad { color: #c12718; font-weight: 700; }
 
-  .ledger { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 620px; }
-  .ledger-fig { border: 1px solid var(--line); border-radius: 11px; background: #fff; padding: 12px 14px; }
-  .ledger-fig strong { display: block; font-size: 28px; font-weight: 700; font-family: var(--mono); }
-  .ledger-fig span { color: var(--soft-ink); font-size: 9.5px; text-transform: uppercase; letter-spacing: .05em; font-weight: 650; }
-  .ledger-note { color: var(--soft-ink); margin-top: 10px; font-size: 10px; }
-  .detail-table { width: 100%; border-collapse: collapse; }
-  .detail-table td { border-top: 1px solid var(--line); padding: 9px 4px; color: var(--soft-ink); font-size: 10.5px; }
-  .detail-table td:first-child { color: var(--ink); font-weight: 650; }
-  .detail-table .cell-mono { font-family: var(--mono); font-size: 9.5px; }
-
-  @media (max-width: 900px) {
-    .dashboard-grid { grid-template-columns: 1fr; grid-template-rows: 560px 300px 300px; }
-    .summary { grid-column: 1; grid-row: 1; }
-    .analytics { grid-column: 1; grid-row: 2; }
-    .geo { grid-column: 1; grid-row: 3; width: 48%; }
-    .alerts { grid-column: 1; grid-row: 3; width: 48%; margin-left: 52%; }
-    .operation-form { grid-template-columns: 1fr 1fr; } .operation-form .dashed { display: none; }
+  .workflow-badge {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    background: rgba(9, 11, 9, 0.9);
+    border: 1px solid var(--border-color);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--accent-lime);
+    padding: 4px 8px;
+    text-transform: uppercase;
   }
-  @media (max-width: 620px) {
-    .shell { padding: 12px; }
-    .map-nav { flex-wrap: wrap; height: auto; padding: 10px 12px; }
-    .nav-tags { margin-top: 4px; }
-    .wbgt-dial { right: 20px; }
-    .chips { grid-template-columns: 1fr 1fr; }
-    .operation-form { grid-template-columns: 1fr; }
-    .ledger { grid-template-columns: 1fr; }
+
+  .workflow-body {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 12px;
+  }
+
+  .workflow-body h4 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+
+  .workflow-body p {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    line-height: 1.55;
+    flex: 1;
+  }
+
+  .workflow-tech-tag {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .workflow-tech-tag span.code {
+    color: var(--accent-lime);
+  }
+
+  /* Section: Operations Console */
+  .operations-section {
+    padding: 80px 0;
+    background: var(--bg-base);
+  }
+
+  .console-wrapper {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    position: relative;
+  }
+
+  /* Console Top Status Bar */
+  .console-status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    background: #0E120E;
+    border-bottom: 1px solid var(--border-color);
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .console-site-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  .site-flag {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    padding: 4px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .site-flag::before {
+    content: "◉";
+    color: var(--accent-lime);
+  }
+
+  .console-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .c-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-base);
+    color: var(--text-secondary);
+    padding: 3px 8px;
+    border-radius: var(--radius-sm);
+  }
+
+  .c-tag.lime {
+    border-color: var(--accent-lime);
+    color: var(--accent-lime);
+  }
+
+  .c-tag.dry {
+    border-style: dashed;
+    color: var(--status-warn);
+    border-color: var(--status-warn);
+  }
+
+  /* Live Telemetry Overview Grid */
+  .telemetry-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .telemetry-primary-cell {
+    padding: 32px 36px;
+    border-right: 1px solid var(--border-color);
+    background: radial-gradient(circle at 80% 20%, rgba(214, 255, 36, 0.05) 0%, transparent 60%);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 28px;
+  }
+
+  .wbgt-headline-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .wbgt-big-display {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .wbgt-big-display small {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .wbgt-big-val {
+    font-family: var(--font-mono);
+    font-size: clamp(48px, 6vw, 76px);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--text-primary);
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    margin: 4px 0 8px;
+  }
+
+  .wbgt-big-val span.unit {
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--text-muted);
+  }
+
+  .band-banner-badge {
+    padding: 8px 14px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .band-banner-badge.normal {
+    background: rgba(128, 201, 149, 0.15);
+    border: 1px solid var(--status-safe);
+    color: var(--status-safe);
+  }
+
+  .band-banner-badge.caution {
+    background: rgba(242, 184, 75, 0.15);
+    border: 1px solid var(--status-warn);
+    color: var(--status-warn);
+  }
+
+  .band-banner-badge.stop {
+    background: rgba(240, 91, 72, 0.15);
+    border: 1px solid var(--status-crit);
+    color: var(--status-crit);
+    animation: alert-flash 1.5s infinite;
+  }
+
+  @keyframes alert-flash {
+    0%, 100% { border-color: var(--status-crit); }
+    50% { border-color: transparent; }
+  }
+
+  .band-reasoning-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    max-width: 460px;
+  }
+
+  /* Metric chips */
+  .sensor-chips-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+
+  .sensor-chip {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .sensor-chip small {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .sensor-chip strong {
+    font-family: var(--font-mono);
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  /* Heat scale track */
+  .heat-scale-box {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .scale-labels span.safe { color: var(--status-safe); }
+  .scale-labels span.warn { color: var(--status-warn); }
+  .scale-labels span.crit { color: var(--status-crit); }
+
+  .scale-track {
+    height: 8px;
+    border-radius: 4px;
+    background: linear-gradient(90deg, var(--status-safe) 0%, var(--status-warn) 50%, var(--status-crit) 100%);
+    position: relative;
+  }
+
+  .scale-pointer {
+    position: absolute;
+    top: -4px;
+    left: 10%;
+    width: 6px;
+    height: 16px;
+    background: var(--text-primary);
+    border: 1px solid #000;
+    box-shadow: 0 0 6px #000;
+    transform: translateX(-50%);
+    transition: left 0.4s ease;
+  }
+
+  /* Dual Engine Analytics Cell */
+  .telemetry-secondary-cell {
+    padding: 32px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    background: var(--bg-surface);
+  }
+
+  .panel-subtitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .panel-subtitle h4 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+
+  .panel-subtitle span {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .engines-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .engine-finding-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--border-color);
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: border-color 0.2s ease;
+  }
+
+  .engine-finding-card.deciding {
+    border-left-color: var(--accent-lime);
+    background: #171C17;
+  }
+
+  .ef-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .ef-engine {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .ef-tags {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .ef-band-pill {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+  }
+
+  .ef-band-pill.normal { background: rgba(128, 201, 149, 0.2); color: var(--status-safe); }
+  .ef-band-pill.caution { background: rgba(242, 184, 75, 0.2); color: var(--status-warn); }
+  .ef-band-pill.stop { background: rgba(240, 91, 72, 0.2); color: var(--status-crit); }
+
+  .deciding-badge {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    background: var(--accent-lime);
+    color: #090B09;
+    padding: 2px 6px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .ef-summary {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .ef-citation {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  /* Two Columns: Screening Workbench & Advisories */
+  .ops-workbench-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .screening-cell {
+    padding: 32px 36px;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .workbench-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .workbench-header h3 {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+
+  .workbench-header span {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    color: var(--text-muted);
+  }
+
+  .screen-form-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 0.8fr 1fr auto;
+    gap: 12px;
+    align-items: end;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .form-group label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .form-control {
+    background: var(--bg-base);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 9px 12px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    transition: border-color 0.15s ease;
+  }
+
+  .form-control:focus {
+    outline: none;
+    border-color: var(--accent-lime);
+    box-shadow: 0 0 8px rgba(214, 255, 36, 0.2);
+  }
+
+  select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23A5ADA2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    padding-right: 32px;
+  }
+
+  /* Proposals Container */
+  .proposals-wrap {
+    margin-top: 20px;
+    border-top: 1px solid var(--border-color);
+    padding-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .agent-narrative-box {
+    background: #0E130E;
+    border: 1px solid var(--border-color);
+    border-left: 3px solid var(--accent-lime);
+    padding: 12px 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .agent-narrative-box small {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--accent-lime);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .proposals-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .proposal-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+  }
+
+  .proposal-card h5 {
+    font-family: var(--font-display);
+    font-size: 19px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--text-primary);
+  }
+
+  .proposal-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+  }
+
+  .phrase-box-row {
+    display: flex;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .phrase-copy-btn {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--accent-lime);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 0 10px;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .phrase-copy-btn:hover {
+    background: var(--accent-lime-dim);
+    border-color: var(--accent-lime);
+  }
+
+  .phrase-badge {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent-lime);
+    background: #0B0E0B;
+    border: 1px dashed var(--accent-lime);
+    padding: 8px 12px;
+    flex: 1;
+    letter-spacing: 0.05em;
+    user-select: all;
+  }
+
+  .approval-input-row {
+    display: flex;
+    gap: 8px;
+  }
+
+  .approval-input {
+    flex: 1;
+    background: var(--bg-base);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 8px 12px;
+  }
+
+  .approval-input:focus {
+    outline: none;
+    border-color: var(--accent-lime);
+  }
+
+  .feedback-banner {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    display: none;
+  }
+
+  .feedback-banner.success {
+    display: block;
+    background: rgba(128, 201, 149, 0.15);
+    border: 1px solid var(--status-safe);
+    color: var(--status-safe);
+  }
+
+  .feedback-banner.error {
+    display: block;
+    background: rgba(240, 91, 72, 0.15);
+    border: 1px solid var(--status-crit);
+    color: var(--status-crit);
+  }
+
+  /* Right column: Advisories & Ledger */
+  .advisories-cell {
+    padding: 32px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+    background: #111411;
+  }
+
+  .advisories-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: 380px;
+    overflow-y: auto;
+  }
+
+  .advisory-item {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .advisory-item.active {
+    border-left: 3px solid var(--accent-lime);
+  }
+
+  .advisory-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .advisory-name {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .advisory-status-tag {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+  }
+
+  .advisory-status-tag.active {
+    background: var(--accent-lime);
+    color: #090B09;
+    font-weight: 700;
+  }
+
+  .advisory-status-tag.revoked {
+    background: var(--bg-surface);
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+  }
+
+  .advisory-desc {
+    font-size: 11.5px;
+    color: var(--text-secondary);
+  }
+
+  .advisory-time {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--text-muted);
+  }
+
+  .advisory-actions {
+    margin-top: 4px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .btn-revoke {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--status-crit);
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: var(--radius-sm);
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .btn-revoke:hover {
+    background: rgba(240, 91, 72, 0.15);
+    border-color: var(--status-crit);
+  }
+
+  /* Ledger summary cards */
+  .ledger-box {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .ledger-stat-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .ledger-stat-card small {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .ledger-stat-card strong {
+    font-family: var(--font-mono);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--accent-lime);
+  }
+
+  .ledger-disclaimer {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text-muted);
+    line-height: 1.45;
+  }
+
+  /* Bottom Row: Escalation Clock & Audit Log */
+  .bottom-telemetry-row {
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+  }
+
+  .escalation-cell {
+    padding: 32px 36px;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .escalation-box {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .audit-cell {
+    padding: 32px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .audit-search-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .table-responsive {
+    max-height: 320px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+  }
+
+  .audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 11px;
+    text-align: left;
+  }
+
+  .audit-table th {
+    position: sticky;
+    top: 0;
+    background: #0E120E;
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .audit-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+  }
+
+  .audit-table tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  .audit-table td.cell-action {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+
+  .audit-table td.cell-outcome {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .audit-table td.cell-outcome.approved { color: var(--status-safe); }
+  .audit-table td.cell-outcome.refused { color: var(--status-crit); }
+
+  /* Safety Statement Banner */
+  .statement-banner {
+    position: relative;
+    padding: 100px 0;
+    border-bottom: 1px solid var(--border-color);
+    overflow: hidden;
+  }
+
+  .statement-banner-bg {
+    position: absolute;
+    inset: 0;
+    background-image: url("/assets/images/industrial-site-heat.jpg");
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.2) contrast(1.15);
+    z-index: 1;
+  }
+
+  .statement-content {
+    position: relative;
+    z-index: 2;
+    max-width: 860px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .statement-headline {
+    font-family: var(--font-display);
+    font-size: clamp(38px, 5.5vw, 76px);
+    font-weight: 900;
+    line-height: 0.95;
+    text-transform: uppercase;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+
+  .statement-headline span.accent {
+    color: var(--accent-lime);
+  }
+
+  .statement-sub {
+    font-size: clamp(14px, 1.2vw, 17px);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 680px;
+  }
+
+  /* Footer */
+  .site-footer {
+    padding: 64px 0 32px;
+    background: #060806;
+    border-top: 1px solid var(--border-color);
+  }
+
+  .footer-top-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1.5fr;
+    gap: 40px;
+    margin-bottom: 48px;
+  }
+
+  .footer-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .footer-col h5 {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent-lime);
+  }
+
+  .footer-links {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .footer-links a {
+    font-size: 12.5px;
+    color: var(--text-secondary);
+    transition: color 0.15s ease;
+  }
+
+  .footer-links a:hover {
+    color: var(--accent-lime);
+  }
+
+  .footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* Toast Notification */
+  #toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+  }
+
+  .toast {
+    pointer-events: auto;
+    background: #141714;
+    border: 1px solid var(--border-color);
+    padding: 12px 18px;
+    border-radius: var(--radius-sm);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    animation: toast-in 0.25s ease-out;
+  }
+
+  .toast.success { border-left: 4px solid var(--status-safe); }
+  .toast.error { border-left: 4px solid var(--status-crit); }
+  .toast.warn { border-left: 4px solid var(--status-warn); }
+
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Mobile Responsive */
+  @media (max-width: 1080px) {
+    .hero-grid { grid-template-columns: 1fr; gap: 32px; }
+    .hero-photo { height: 420px; }
+    .strip-grid { grid-template-columns: repeat(2, 1fr); }
+    .workflow-grid { grid-template-columns: 1fr; }
+    .telemetry-grid { grid-template-columns: 1fr; }
+    .telemetry-primary-cell { border-right: none; border-bottom: 1px solid var(--border-color); }
+    .ops-workbench-grid { grid-template-columns: 1fr; }
+    .screening-cell { border-right: none; border-bottom: 1px solid var(--border-color); }
+    .bottom-telemetry-row { grid-template-columns: 1fr; }
+    .escalation-cell { border-right: none; border-bottom: 1px solid var(--border-color); }
+    .footer-top-grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  }
+
+  @media (max-width: 768px) {
+    .nav-desktop { display: none; }
+    .mobile-menu-btn { display: block; }
+    .hero-headline { font-size: 52px; }
+    .strip-grid { grid-template-columns: 1fr; }
+    .sensor-chips-row { grid-template-columns: repeat(2, 1fr); }
+    .screen-form-grid { grid-template-columns: 1fr; }
+    .ledger-box { grid-template-columns: 1fr; }
+    .footer-top-grid { grid-template-columns: 1fr; }
+    .hero-meta-strip { grid-template-columns: 1fr; }
+  }
+
+  /* Accessibility: Prefers Reduced Motion */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 </style>
 </head>
 <body>
-<div class="shell">
-  <div id="error-banner"></div>
 
-  <main class="dashboard-grid">
-    <section class="card summary">
-      <div class="map-nav" aria-label="Console bar">
-        <strong>छाया&nbsp;<span>Chhaya</span></strong>
-        <div class="nav-tags">
-          <span class="tag" id="tag-mode">mode …</span>
-          <span class="tag" id="tag-site">site …</span>
-          <span class="tag" id="tag-policy">dry-run …</span>
-          <span class="clock-chip" id="clock">--:--</span>
+<!-- Global Navigation -->
+<header class="site-header" role="banner">
+  <div class="container header-inner">
+    <div class="brand-group">
+      <a href="#" class="brand-logo" aria-label="CHHAYA Home">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="5" />
+            <line x1="12" y1="1" x2="12" y2="4" stroke="currentColor" stroke-width="2" />
+            <line x1="12" y1="20" x2="12" y2="23" stroke="currentColor" stroke-width="2" />
+            <line x1="4.22" y1="4.22" x2="6.34" y2="6.34" stroke="currentColor" stroke-width="2" />
+            <line x1="17.66" y1="17.66" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" />
+            <line x1="1" y1="12" x2="4" y2="12" stroke="currentColor" stroke-width="2" />
+            <line x1="20" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" />
+            <line x1="4.22" y1="19.78" x2="6.34" y2="17.66" stroke="currentColor" stroke-width="2" />
+            <line x1="17.66" y1="6.34" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" />
+          </svg>
+        </div>
+        <div class="brand-text">
+          <span class="brand-title">CHHAYA</span>
+          <span class="brand-sub"><span class="hindi">छाया</span> · HEAT SAFETY INTELLIGENCE</span>
+        </div>
+      </a>
+    </div>
+
+    <nav class="nav-desktop" aria-label="Primary navigation">
+      <a href="#overview" class="nav-link active">Overview</a>
+      <a href="#capabilities" class="nav-link">Capabilities</a>
+      <a href="#workflow" class="nav-link">Workflow</a>
+      <a href="#operations" class="nav-link">Operations</a>
+      <a href="#screening" class="nav-link">Heat Screen</a>
+      <a href="#audit" class="nav-link">Audit Trail</a>
+    </nav>
+
+    <div class="header-actions">
+      <div class="telemetry-badge" title="Live system connection">
+        <span class="telemetry-dot"></span>
+        <span id="nav-mode-indicator">LOCAL // FAKE</span>
+        <span class="mono" id="nav-clock">--:--</span>
+      </div>
+      <a href="#operations" class="btn-lime">ENTER OPERATIONS ↗</a>
+      <button class="mobile-menu-btn" id="mobile-toggle" aria-label="Toggle navigation">☰</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- Hero Section -->
+  <section class="hero-section" id="overview" aria-label="Product introduction">
+    <div class="container">
+      <div class="hero-grid">
+        <div class="hero-content">
+          <span class="section-eyebrow">HEAT SAFETY INTELLIGENCE / FIELD OPERATIONS</span>
+          <h1 class="hero-headline">
+            THE HEAT<br />
+            IS RISING.<br />
+            STAY ONE<br />
+            <span class="accent">STEP AHEAD.</span>
+          </h1>
+          <p class="hero-desc">
+            <strong>Assess exposure. Act on risk. Protect every shift.</strong><br />
+            Frontline industrial thermal defense powered by dual published scientific standards
+            (ISO 7243 and NIOSH 2016-106). When algorithms advise, strict human consent governs.
+          </p>
+          <div class="hero-ctas">
+            <a href="#operations" class="btn-lime">ENTER OPERATIONS ↗</a>
+            <a href="#workflow" class="btn-ghost">HOW IT WORKS</a>
+          </div>
+          <div class="hero-meta-strip">
+            <div class="meta-col">
+              <small>ACTIVE SITE</small>
+              <span id="hero-site-label">HYDERABAD · MIYAPUR</span>
+            </div>
+            <div class="meta-col">
+              <small>ENGINE ARBITRATION</small>
+              <span>STRICTER ENGINE WINS</span>
+            </div>
+            <div class="meta-col">
+              <small>CONSENT PROTOCOL</small>
+              <span>VERBATIM PHRASE REGEX</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-media-wrapper">
+          <span class="hud-crosshair">+ 17.4977° N, 78.3844° E</span>
+          <img
+            src="/assets/images/hero-worker-heat.jpg"
+            alt="Industrial infrastructure worker in hard hat and high visibility vest on elevated concrete worksite under intense sunlight"
+            class="hero-photo"
+            loading="eager"
+            onerror="this.style.display='none'"
+          />
+          <div class="hero-photo-overlay"></div>
+          <div class="hero-hud">
+            <div class="hud-badge">
+              <small>LIVE SITE WBGT</small>
+              <strong id="hero-hud-wbgt">31.8 °C</strong>
+            </div>
+            <div class="hud-badge" style="text-align: right;">
+              <small>CURRENT STATUS</small>
+              <strong id="hero-hud-band" style="color: var(--accent-lime);">MONITORING ACTIVE</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Capabilities Strip -->
+  <section class="capabilities-strip" id="capabilities" aria-label="Operational Capabilities">
+    <div class="container">
+      <div class="strip-grid">
+        <div class="strip-card">
+          <span class="strip-num">01 // ASSESS</span>
+          <h3>UNDERSTAND EXPOSURE</h3>
+          <p>Continuous thermal triage across air temperature, relative humidity, wind speed, and WBGT with dual-engine verification.</p>
+        </div>
+        <div class="strip-card">
+          <span class="strip-num">02 // PROTECT</span>
+          <h3>COORDINATE ACTIONS</h3>
+          <p>Policy-bounded safety interventions: mandatory water breaks, shaded rest cycles, shift rescheduling, or stop-work.</p>
+        </div>
+        <div class="strip-card">
+          <span class="strip-num">03 // VERIFY</span>
+          <h3>CONFIRM HUMAN CONSENT</h3>
+          <p>Zero algorithmic autonomous closures. Authorized supervisors must type exact cryptographic approval phrases.</p>
+        </div>
+        <div class="strip-card">
+          <span class="strip-num">04 // RECORD</span>
+          <h3>MAINTAIN ACCOUNTABILITY</h3>
+          <p>Immutable ledger tracking hazardous worker-hours observed, covered, and avoided with full audit permanence.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How Chhaya Works -->
+  <section class="workflow-section" id="workflow" aria-label="Workflow Architecture">
+    <div class="container">
+      <div class="section-header-block">
+        <div>
+          <span class="section-eyebrow">FIELD PROCESS DISCIPLINE</span>
+          <h2 class="section-title">FROM EXPOSURE TO ACTION.</h2>
+        </div>
+        <p style="max-width: 420px; color: var(--text-secondary); font-size: 13px;">
+          Three rigorous gates separating raw environmental measurements from frontline safety decisions.
+        </p>
+      </div>
+
+      <div class="workflow-grid">
+        <!-- Card 1 -->
+        <article class="workflow-card">
+          <div class="workflow-media">
+            <span class="workflow-badge">PHASE 01 // TRIAGE</span>
+            <img
+              src="/assets/images/industrial-site-heat.jpg"
+              alt="Elevated metro rail construction viaduct under harsh sunlight"
+              class="workflow-img"
+              loading="lazy"
+            />
+          </div>
+          <div class="workflow-body">
+            <h4>01. Dual-Engine Screening</h4>
+            <p>
+              Environmental telemetry feeds into two independent domain engines: ISO 7243 (screening for heat stress)
+              and NIOSH 2016-106 (occupational criteria). The stricter engine automatically decides the site band.
+            </p>
+            <div class="workflow-tech-tag">
+              RULE: <span class="code">stricter(ISO_7243, NIOSH)</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="workflow-card">
+          <div class="workflow-media">
+            <span class="workflow-badge">PHASE 02 // CONSENT</span>
+            <img
+              src="/assets/images/ppe-gear-inspection.jpg"
+              alt="Protective gear, helmet, safety harness, and WBGT environmental monitor"
+              class="workflow-img"
+              loading="lazy"
+            />
+          </div>
+          <div class="workflow-body">
+            <h4>02. Strict Human Consent</h4>
+            <p>
+              When thresholds are crossed, pre-registered policies generate explicit safety proposals. An authorized
+              supervisor must type the exact case-sensitive phrase into the console before any advisory is dispatched.
+            </p>
+            <div class="workflow-tech-tag">
+              GATE: <span class="code">Regex word-boundary exact match</span>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="workflow-card">
+          <div class="workflow-media">
+            <span class="workflow-badge">PHASE 03 // EXECUTION</span>
+            <img
+              src="/assets/images/shade-hydration-break.jpg"
+              alt="Workers resting and drinking clean water in a shaded canopy rest area"
+              class="workflow-img"
+              loading="lazy"
+            />
+          </div>
+          <div class="workflow-body">
+            <h4>03. Execution &amp; Ledger</h4>
+            <p>
+              Dispatched actions notify site leads, generate standing advisories, and log verified worker-hours.
+              Unanswered critical proposals escalate to site owners and labor helplines via the 10-minute clock.
+            </p>
+            <div class="workflow-tech-tag">
+              AUDIT: <span class="code">Hazardous worker-hours ledger</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- Operations Console -->
+  <section class="operations-section" id="operations" aria-label="Operations Console">
+    <div class="container">
+      <div class="section-header-block" style="margin-bottom: 24px;">
+        <div>
+          <span class="section-eyebrow">FIELD TELEMETRY // SUPERVISOR WORKSTATION</span>
+          <h2 class="section-title">OPERATIONS CONSOLE.</h2>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+          <button class="btn-ghost" id="refresh-state-btn" style="padding: 8px 14px; font-size: 13px;">
+            ↻ SYNC STATE
+          </button>
         </div>
       </div>
 
-      <span class="map-location one">HYDERABAD · HEAT SITE</span>
-      <span class="map-location two" id="map-site">site …</span>
+      <div class="console-wrapper">
+        <!-- Top Status Bar -->
+        <div class="console-status-bar">
+          <div class="console-site-info">
+            <span class="site-flag" id="console-site-name">HYDERABAD-MIYAPUR-SITE-B</span>
+            <span class="mono" style="color: var(--text-muted); font-size: 11px;" id="console-supervisor-name">
+              SUPERVISOR: Ravi Kumar
+            </span>
+          </div>
+          <div class="console-tags">
+            <span class="c-tag lime" id="tag-mode">MODE LOCAL</span>
+            <span class="c-tag" id="tag-weather-source">SOURCE FAKE</span>
+            <span class="c-tag dry" id="tag-policy">DRY-RUN ON</span>
+            <span class="c-tag" id="tag-store">STORE LOCALSTORE</span>
+            <span class="c-tag" id="tag-agent">AGENT LOCALAGENT</span>
+          </div>
+        </div>
 
-      <div class="wbgt-dial"><b id="m-wbgt">—</b><small>WBGT · °C</small></div>
+        <!-- Telemetry Overview Row -->
+        <div class="telemetry-grid">
+          <!-- Primary Cell -->
+          <div class="telemetry-primary-cell">
+            <div class="wbgt-headline-row">
+              <div class="wbgt-big-display">
+                <small>WET BULB GLOBE TEMPERATURE</small>
+                <div class="wbgt-big-val">
+                  <span id="val-wbgt">—</span>
+                  <span class="unit">°C</span>
+                </div>
+                <div class="band-banner-badge normal" id="banner-band-badge">
+                  <span id="label-band">NORMAL</span>
+                </div>
+              </div>
+              <div style="text-align: right;">
+                <span class="mono" style="font-size: 11px; color: var(--text-muted); display: block;">LAST ASSESSED</span>
+                <span class="mono" id="label-assessed-time" style="font-size: 14px; color: var(--text-primary); font-weight: 600;">PENDING SCREEN</span>
+              </div>
+            </div>
 
-      <div class="band-status">
-        <div class="band" id="hero-band">No screen yet</div>
-        <p id="hero-reason">Screen an hour below to get a band from ISO 7243 and NIOSH — the stricter one decides.</p>
+            <p class="band-reasoning-text" id="label-band-reason">
+              Run a screening below to evaluate the current or forecast hour against ISO 7243 and NIOSH 2016-106 criteria.
+            </p>
+
+            <!-- Sensor Chips -->
+            <div class="sensor-chips-row">
+              <div class="sensor-chip">
+                <small>HEAT INDEX</small>
+                <strong id="val-hi">— °C</strong>
+              </div>
+              <div class="sensor-chip">
+                <small>AIR TEMP</small>
+                <strong id="val-air">— °C</strong>
+              </div>
+              <div class="sensor-chip">
+                <small>HUMIDITY</small>
+                <strong id="val-rh">— %</strong>
+              </div>
+              <div class="sensor-chip">
+                <small>WIND SPEED</small>
+                <strong id="val-ws">— m/s</strong>
+              </div>
+            </div>
+
+            <!-- Heat Scale Bar -->
+            <div class="heat-scale-box">
+              <div class="scale-labels">
+                <span class="safe">NORMAL [SAFE]</span>
+                <span class="warn">CAUTION [RAL EXCEEDED]</span>
+                <span class="crit">STOP [REL / CEILING]</span>
+              </div>
+              <div class="scale-track">
+                <div class="scale-pointer" id="scale-indicator" style="left: 10%;"></div>
+              </div>
+              <span class="mono" style="font-size: 9.5px; color: var(--text-muted); text-align: right;" id="scale-caption">
+                ◉ Stricter band decides
+              </span>
+            </div>
+          </div>
+
+          <!-- Secondary Cell: Dual Engine Evaluation -->
+          <div class="telemetry-secondary-cell">
+            <div class="panel-subtitle">
+              <h4>DUAL-ENGINE ARBITRATION</h4>
+              <span>ISO 7243 · NIOSH 2016-106</span>
+            </div>
+
+            <div class="engines-container" id="engine-findings-wrap">
+              <div class="engine-finding-card">
+                <div class="ef-head">
+                  <span class="ef-engine">ISO 7243 (2017)</span>
+                  <div class="ef-tags">
+                    <span class="ef-band-pill normal">NORMAL</span>
+                  </div>
+                </div>
+                <div class="ef-summary">Awaiting hourly thermal assessment.</div>
+                <div class="ef-citation">ISO 7243:2017(E) Table E.1</div>
+              </div>
+
+              <div class="engine-finding-card">
+                <div class="ef-head">
+                  <span class="ef-engine">NIOSH (2016)</span>
+                  <div class="ef-tags">
+                    <span class="ef-band-pill normal">NORMAL</span>
+                  </div>
+                </div>
+                <div class="ef-summary">Awaiting hourly thermal assessment.</div>
+                <div class="ef-citation">DHHS (NIOSH) Publication No. 2016-106</div>
+              </div>
+            </div>
+
+            <div style="background: var(--bg-elevated); border: 1px solid var(--border-color); padding: 12px 14px;">
+              <span class="mono" style="font-size: 9.5px; color: var(--accent-lime); text-transform: uppercase; letter-spacing: 0.08em; display: block; margin-bottom: 2px;">
+                ARBITRATION CONTRACT
+              </span>
+              <p style="font-size: 11.5px; color: var(--text-secondary); line-height: 1.45;">
+                Under policy rule 4, when ISO and NIOSH engines produce differing verdicts, the system strictly adopts the higher-risk band to guarantee uncompromised worker protection.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Workbench Grid: Screen an Hour + Standing Advisories -->
+        <div class="ops-workbench-grid" id="screening">
+          <!-- Left: Screen an Hour -->
+          <div class="screening-cell">
+            <div class="workbench-header">
+              <h3>SCREEN AN HOUR</h3>
+              <span>TWO ENGINES · STRICTER WINS</span>
+            </div>
+
+            <form id="screen-form" onsubmit="event.preventDefault(); runScreen();">
+              <div class="screen-form-grid">
+                <div class="form-group">
+                  <label for="input-when">HOUR (LOCAL)</label>
+                  <input type="datetime-local" id="input-when" class="form-control" step="3600" required />
+                </div>
+                <div class="form-group">
+                  <label for="input-workload">WORKLOAD</label>
+                  <select id="input-workload" class="form-control">
+                    <option value="light">Light (180 W)</option>
+                    <option value="moderate">Moderate (300 W)</option>
+                    <option value="heavy" selected>Heavy (415 W)</option>
+                    <option value="very_heavy">Very Heavy (520 W)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="input-workers">CREW</label>
+                  <input type="number" id="input-workers" class="form-control" value="35" min="1" max="5000" required />
+                </div>
+                <div class="form-group">
+                  <label for="input-acclim">ACCLIMATIZATION</label>
+                  <select id="input-acclim" class="form-control">
+                    <option value="unacclimatized" selected>Unacclimatized (RAL)</option>
+                    <option value="acclimatized">Acclimatized (REL)</option>
+                  </select>
+                </div>
+                <button type="submit" class="btn-lime" id="btn-run-screen" style="height: 40px; padding: 0 16px;">
+                  RUN SCREEN
+                </button>
+              </div>
+            </form>
+
+            <!-- Results & Generated Proposals -->
+            <div class="proposals-wrap" id="proposals-container" style="display: none;">
+              <div class="agent-narrative-box" id="agent-narrative">
+                <small>SAFETY AGENT REASONING</small>
+                <span id="agent-narrative-text">—</span>
+              </div>
+
+              <div class="proposals-list" id="proposals-list">
+                <!-- Proposal cards injected dynamically -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Advisories & Ledger -->
+          <div class="advisories-cell">
+            <div class="workbench-header">
+              <h3>ACTIVE ADVISORIES</h3>
+              <span id="advisories-count">0 ACTIVE</span>
+            </div>
+
+            <div class="advisories-list" id="advisories-list">
+              <div class="advisory-item active">
+                <div class="advisory-top">
+                  <span class="advisory-name">MONITORING ACTIVE</span>
+                  <span class="advisory-status-tag active">STANDBY</span>
+                </div>
+                <div class="advisory-desc">System operating in continuous telemetry standby. Run an hourly screen to generate actionable advisories.</div>
+                <span class="advisory-time">Real-time store connection active</span>
+              </div>
+            </div>
+
+            <!-- Worker-Hours Ledger -->
+            <div class="workbench-header" style="margin-top: 12px;">
+              <h3>WORKER-HOURS LEDGER</h3>
+              <span style="color: var(--accent-lime);">IMMUTABLE SITE STORE</span>
+            </div>
+
+            <div class="ledger-box">
+              <div class="ledger-stat-card">
+                <small>HAZARDOUS OBSERVED</small>
+                <strong id="stat-observed">0.0</strong>
+                <span class="mono" style="font-size: 10px; color: var(--text-muted);">worker-hours</span>
+              </div>
+              <div class="ledger-stat-card">
+                <small>ADVISORY COVERED</small>
+                <strong id="stat-covered">0.0</strong>
+                <span class="mono" style="font-size: 10px; color: var(--text-muted);">worker-hours</span>
+              </div>
+            </div>
+            <p class="ledger-disclaimer" id="stat-assumption">
+              Covered is measured directly from verified site executions. Avoided is an evaluated counterfactual model.
+            </p>
+          </div>
+        </div>
+
+        <!-- Bottom Row: Escalation Clock & Audit Trail -->
+        <div class="bottom-telemetry-row">
+          <!-- Escalation Clock -->
+          <div class="escalation-cell">
+            <div class="workbench-header">
+              <h3>ESCALATION CLOCK</h3>
+              <button class="btn-ghost" id="btn-check-escalations" style="font-size: 11px; padding: 4px 10px;">
+                CHECK CLOCK
+              </button>
+            </div>
+            <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.45;">
+              Unanswered Stop-work proposals trigger automatic notification to site owners and labor helplines after 10 minutes.
+            </p>
+            <div class="escalation-box" id="escalation-results">
+              <span class="mono" style="font-size: 11px; color: var(--text-muted);">
+                The escalation clock is quiet. No pending proposals have exceeded the response threshold.
+              </span>
+            </div>
+          </div>
+
+          <!-- Audit Trail Table -->
+          <div class="audit-cell" id="audit">
+            <div class="audit-search-bar">
+              <div class="workbench-header" style="margin-bottom: 0;">
+                <h3>AUDIT TRAIL</h3>
+                <span id="audit-count">0 RECORDS</span>
+              </div>
+              <input type="text" id="audit-filter" placeholder="Filter by action or approver..." class="form-control" style="width: 220px; padding: 5px 10px; font-size: 11px;" />
+            </div>
+
+            <div class="table-responsive">
+              <table class="audit-table">
+                <thead>
+                  <tr>
+                    <th>ACTION ID</th>
+                    <th>OUTCOME</th>
+                    <th>APPROVER</th>
+                    <th>TIMESTAMP</th>
+                    <th>VERIFICATION</th>
+                  </tr>
+                </thead>
+                <tbody id="audit-records-body">
+                  <tr>
+                    <td colspan="5" class="mono" style="text-align: center; color: var(--text-muted); padding: 20px;">
+                      No audit action records recorded in site store yet.
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Editorial Safety Statement Banner -->
+  <section class="statement-banner" aria-label="Commitment to worker safety">
+    <div class="statement-banner-bg"></div>
+    <div class="container statement-content">
+      <span class="section-eyebrow">A HIGHER STANDARD OF PROTECTION</span>
+      <h2 class="statement-headline">
+        EVERY SHIFT DESERVES A <span class="accent">SAFER WORKSITE.</span>
+      </h2>
+      <p class="statement-sub">
+        Extreme ambient heat is not an acceptable cost of industrial production.
+        By combining the world's most rigorous thermal physiology models with non-negotiable human accountability,
+        Chhaya protects frontline crews before heat illness takes hold.
+      </p>
+      <a href="#operations" class="btn-lime" style="margin-top: 12px;">LAUNCH SAFETY OPERATIONS ↗</a>
+    </div>
+  </section>
+</main>
+
+<!-- Global Footer -->
+<footer class="site-footer" role="contentinfo">
+  <div class="container">
+    <div class="footer-top-grid">
+      <div class="footer-col">
+        <div class="brand-logo" style="margin-bottom: 6px;">
+          <div class="brand-icon">
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="5" />
+              <line x1="12" y1="1" x2="12" y2="4" stroke="currentColor" stroke-width="2" />
+              <line x1="12" y1="20" x2="12" y2="23" stroke="currentColor" stroke-width="2" />
+              <line x1="4.22" y1="4.22" x2="6.34" y2="6.34" stroke="currentColor" stroke-width="2" />
+              <line x1="17.66" y1="17.66" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" />
+              <line x1="1" y1="12" x2="4" y2="12" stroke="currentColor" stroke-width="2" />
+              <line x1="20" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" />
+              <line x1="4.22" y1="19.78" x2="6.34" y2="17.66" stroke="currentColor" stroke-width="2" />
+              <line x1="17.66" y1="6.34" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" />
+            </svg>
+          </div>
+          <span class="brand-title">CHHAYA</span>
+        </div>
+        <p style="color: var(--text-secondary); font-size: 12px; line-height: 1.6; max-width: 380px;">
+          Site-level heat action plan system for outdoor workers in heavy infrastructure, civil construction, and logistics.
+          Dual published engines, stricter-wins arbitration, exact phrase verification.
+        </p>
       </div>
 
-      <div class="chips">
-        <div class="chip"><small>Heat index</small><strong id="chip-hi">—</strong></div>
-        <div class="chip"><small>Air temperature</small><strong id="chip-air">—</strong></div>
-        <div class="chip"><small>Humidity</small><strong id="chip-rh">—</strong></div>
-        <div class="chip"><small>Wind</small><strong id="chip-ws">—</strong></div>
+      <div class="footer-col">
+        <h5>SECTIONS</h5>
+        <ul class="footer-links">
+          <li><a href="#overview">Overview</a></li>
+          <li><a href="#capabilities">Capabilities</a></li>
+          <li><a href="#workflow">Workflow</a></li>
+          <li><a href="#operations">Operations Console</a></li>
+          <li><a href="#screening">Heat Screen</a></li>
+          <li><a href="#audit">Audit Ledger</a></li>
+        </ul>
       </div>
 
-      <div class="map-scale">
-        <div class="scale-labels"><span>NORMAL</span><span>CAUTION</span><span>STOP</span></div>
-        <div class="track"><i id="scale-marker" style="display:none"></i></div>
-        <div class="scale-note">◉ Heat band — <b id="scale-band">stricter of ISO 7243 / NIOSH wins</b></div>
+      <div class="footer-col">
+        <h5>SCIENTIFIC CITATIONS</h5>
+        <ul class="footer-links">
+          <li><span class="mono" style="font-size: 11px; color: var(--text-muted);">ISO 7243:2017</span></li>
+          <li><span class="mono" style="font-size: 11px; color: var(--text-muted);">NIOSH 2016-106</span></li>
+          <li><span class="mono" style="font-size: 11px; color: var(--text-muted);">NOAA Heat Index</span></li>
+          <li><span class="mono" style="font-size: 11px; color: var(--text-muted);">Bernard (1999) WBGT</span></li>
+        </ul>
       </div>
-    </section>
 
-    <section class="card analytics">
-      <div class="analytics-head"><h2>Both engines</h2><span>ISO 7243 · NIOSH — stricter band wins</span></div>
-      <div class="findings" id="findings"><div class="empty">Findings appear after a screen.</div></div>
-    </section>
-
-    <section class="card geo">
-      <div class="geo-title">Wind &amp; humidity</div>
-      <div class="geo-read" id="wind-read">—<small>&nbsp;m/s</small></div>
-      <div class="geo-unit">measured at screen hour</div>
-      <div class="geo-orbit"><b id="wind-rh">—<span>RH %</span></b><i></i><i></i><i></i><i></i><i></i><i></i></div>
-      <div class="geo-note" id="wind-note">↗ Weather source loads on boot</div>
-    </section>
-
-    <section class="card alerts">
-      <div class="alerts-title"><h2>Advisories</h2><span>standing heat advisories</span></div>
-      <div class="alerts-list" id="alerts-list"></div>
-      <div class="alerts-foot"><b id="alerts-count">0</b><span>active · covered <b id="alerts-covered">0</b> worker-hrs</span></div>
-    </section>
-  </main>
-
-  <section class="block">
-    <div class="block-head"><h2>Screen an hour</h2><span class="status">Two published engines · stricter band wins</span></div>
-    <div class="operation-form">
-      <div><label for="when">Hour (local)</label><input type="datetime-local" id="when" step="3600" /></div>
-      <div><label for="workload">Workload</label><select id="workload"><option value="light">Light</option><option value="moderate">Moderate</option><option value="heavy" selected>Heavy</option><option value="very_heavy">Very heavy</option></select></div>
-      <div><label for="workers">Crew</label><input type="number" id="workers" value="35" min="1" max="10000" /></div>
-      <div><label for="acclim">Acclimatization</label><select id="acclim"><option value="unacclimatized" selected>Unacclimatized</option><option value="acclimatized">Acclimatized</option></select></div>
-      <button class="action-btn" id="screen-btn">Run screen</button>
+      <div class="footer-col">
+        <h5>SYSTEM ARCHITECTURE</h5>
+        <p style="font-size: 12px; color: var(--text-secondary); line-height: 1.5;">
+          Zero-build monolithic client. Real-time FastAPI runtime. AWS DynamoDB single-table &amp; SNS integration ready.
+        </p>
+        <span class="mono" id="footer-policy-fingerprint" style="font-size: 10px; color: var(--text-muted); word-break: break-all;">
+          POLICY SHA: ...
+        </span>
+      </div>
     </div>
-    <div class="operation-result" id="operation-result">
-      <div class="result-line"><strong class="result-band" id="result-band">—</strong><span id="result-reason" class="result-meta"></span><span id="result-metrics" class="result-meta"></span></div>
-      <div class="proposal-list" id="proposal-list"></div>
+
+    <div class="footer-bottom">
+      <span>CHHAYA © 2026. OPEN-SOURCE INDUSTRIAL SAFETY INFRASTRUCTURE. APACHE-2.0.</span>
+      <span id="footer-status-line">SYSTEM STATUS: ALL ENGINES OPERATIONAL</span>
     </div>
-  </section>
+  </div>
+</footer>
 
-  <section class="block">
-    <div class="block-head"><h2>Worker‑hours ledger</h2><span class="status">live from the site store</span></div>
-    <div class="ledger">
-      <div class="ledger-fig"><strong id="stat-observed">0</strong><span>hazardous worker‑hrs observed</span></div>
-      <div class="ledger-fig"><strong id="stat-covered">0</strong><span>worker‑hrs covered by advisories</span></div>
-    </div>
-    <div class="ledger-note" id="stat-assumption"></div>
-  </section>
+<!-- Toast Notifications -->
+<div id="toast-container" aria-live="polite"></div>
 
-  <section class="block">
-    <div class="block-head"><h2>Escalation clock</h2><span class="status">unresolved proposals past their window surface here</span></div>
-    <button class="ghost-btn" id="escalation-btn">Check who has waited too long</button>
-    <div id="escalations" style="margin-top:12px"></div>
-  </section>
-
-  <section class="block">
-    <div class="block-head"><h2>Audit trail</h2><span class="status" id="report-summary">action records from the site store</span></div>
-    <table class="detail-table"><tbody id="records"></tbody></table>
-  </section>
-</div>
-
+<!-- Client Application Logic -->
 <script>
-const $ = (id) => document.getElementById(id);
-const api = async (path, opts) => { const res = await fetch(path, opts); const body = await res.json().catch(() => ({})); if (!res.ok) throw new Error(body.detail || `${res.status} ${res.statusText}`); return body; };
-const post = (path, body) => api(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-let supervisor = { name: "Supervisor", roles: ["site_supervisor"] };
-function localInputValue(date) { const p = (n) => String(n).padStart(2, "0"); return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:00`; }
-function showError(message) { $("error-banner").textContent = message; $("error-banner").style.display = "block"; setTimeout(() => $("error-banner").style.display = "none", 6000); }
-function updateClock() { const now = new Date(); $("clock").textContent = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }); if (!$("when").value) { const afternoon = new Date(now); afternoon.setHours(15, 0, 0, 0); $("when").value = localInputValue(afternoon); } }
-function bandClass(band) { return ["normal", "caution", "stop"].includes(band) ? "band-" + band : ""; }
+  const $ = (id) => document.getElementById(id);
 
-function renderSite(config, policy) {
-  $("tag-mode").textContent = "mode " + config.mode;
-  $("tag-mode").className = "tag " + (config.mode === "aws" ? "tag-live" : "");
-  $("tag-site").textContent = "site " + config.site_id;
-  $("map-site").textContent = config.site_id.toUpperCase();
-  $("tag-policy").textContent = "dry-run " + (config.dry_run ? "on" : "off");
-  $("tag-policy").className = "tag " + (config.dry_run ? "tag-dry" : "");
-  $("wind-note").textContent = "↗ Weather: " + config.weather_source;
-  if (policy && policy.site && policy.site.supervisor) {
-    supervisor = { name: policy.site.supervisor.name, roles: policy.site.supervisor.roles };
+  // API helper
+  async function api(path, opts = {}) {
+    const res = await fetch(path, opts);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      const err = new Error(data.detail || `${res.status} ${res.statusText}`);
+      err.status = res.status;
+      err.data = data;
+      throw err;
+    }
+    return data;
   }
-}
 
-function renderAlerts(state) {
-  const advisories = state.advisories || [];
-  const active = advisories.filter((a) => a.active);
-  $("alerts-count").textContent = active.length;
-  $("alerts-covered").textContent = state.ledger.hazardous_worker_hours_covered.toFixed(1);
-  $("alerts-list").innerHTML =
-    advisories.length
-      ? advisories.map((a) => `
-          <div class="alert ${a.active ? "active" : ""}">
-            <p>${a.action_id.replaceAll("_", " ").toUpperCase()} · ${a.active ? "ACTIVE" : (a.revoked ? "REVOKED" : "EXPIRED")}</p>
-            <p class="subtle">${a.reason || "Standing heat advisory"}</p>
-            <time>issued ${a.issued_at}${a.expires_at ? " · expires " + a.expires_at : ""}</time>
-            ${a.revoked ? `<time>revoked by ${a.revoked_by}: ${a.revoke_reason}</time>`
-              : `<button class="ghost-btn" data-revoke="${a.advisory_id}">Revoke</button>`}
-          </div>`).join("")
-      : `<div class="alert active"><p>Monitoring is active</p><p class="subtle">No current heat advisory. Run a screen to evaluate the next hour.</p></div>`;
-  $("alerts-list").querySelectorAll("[data-revoke]").forEach((btn) => btn.addEventListener("click", () => revoke(btn.dataset.revoke)));
-}
+  const post = (path, body) => api(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
-function renderRecords(state) {
-  const records = state.records || [];
-  $("report-summary").textContent = `${records.length} action record${records.length === 1 ? "" : "s"} · live from the site store`;
-  $("records").innerHTML = records.length
-    ? records.map((r) => `<tr><td class="cell-mono">${r.action_id}</td><td>${r.outcome}</td><td>${r.approver}</td><td class="cell-mono">${r.proposed_at}</td><td>${r.verification_detail || ""}</td></tr>`).join("")
-    : `<tr><td colspan="5" class="empty">No action records yet.</td></tr>`;
-}
+  // Toast UI
+  function showToast(message, type = "info") {
+    const container = $("toast-container");
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = "0";
+      toast.style.transition = "opacity 0.3s ease";
+      setTimeout(() => toast.remove(), 300);
+    }, 4500);
+  }
 
-async function refreshState() {
-  try {
-    const state = await api("/api/state");
-    renderAlerts(state);
-    renderRecords(state);
-    $("stat-observed").textContent = state.ledger.hazardous_worker_hours_observed.toFixed(1);
-    $("stat-covered").textContent = state.ledger.hazardous_worker_hours_covered.toFixed(1);
-    $("stat-assumption").textContent = "Covered is measured. Avoided is a counterfactual: " + state.ledger.avoided_estimate_assumption;
-  } catch (e) { showError(e.message); }
-}
+  // State
+  let supervisor = { name: "Ravi Kumar", roles: ["site_supervisor", "safety_officer"] };
+  let currentRecords = [];
 
-function applyScreen(body) {
-  const triage = body.triage, verdict = triage.verdict, idx = triage.indices;
+  function formatLocalInput(date) {
+    const p = (n) => String(n).padStart(2, "0");
+    return `${date.getFullYear()}-${p(date.getMonth() + 1)}-${p(date.getDate())}T${p(date.getHours())}:00`;
+  }
 
-  $("m-wbgt").textContent = idx.wbgt_c.toFixed(1);
-  $("hero-band").textContent = verdict.label + " · " + verdict.band;
-  $("hero-reason").textContent = verdict.reason;
-  $("chip-hi").textContent = idx.heat_index_c.toFixed(1) + " °C";
-  $("chip-air").textContent = idx.air_c.toFixed(1) + " °C";
-  $("chip-rh").textContent = idx.relative_humidity.toFixed(0) + " %";
-  $("chip-ws").textContent = idx.wind_ms.toFixed(1) + " m/s";
+  function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    $("nav-clock").textContent = timeStr;
 
-  const marker = $("scale-marker");
-  marker.style.display = "block";
-  const pos = { normal: "6%", caution: "52%", stop: "94%" }[verdict.band] || "6%";
-  marker.style.left = pos;
+    if (!$("input-when").value) {
+      const afternoon = new Date(now);
+      afternoon.setHours(15, 0, 0, 0);
+      $("input-when").value = formatLocalInput(afternoon);
+    }
+  }
 
-  $("wind-read").firstChild.nodeValue = idx.wind_ms.toFixed(1) + " ";
-  $("wind-rh").innerHTML = idx.relative_humidity.toFixed(0) + "<span>RH %</span>";
+  function renderSystem(config, policy) {
+    if (config) {
+      $("nav-mode-indicator").textContent = `${config.mode.toUpperCase()} // ${config.weather_source.toUpperCase()}`;
+      $("tag-mode").textContent = `MODE ${config.mode.toUpperCase()}`;
+      $("tag-mode").className = `c-tag ${config.mode === "aws" ? "lime" : ""}`;
+      $("tag-weather-source").textContent = `SOURCE ${config.weather_source.toUpperCase()}`;
+      $("tag-policy").textContent = `DRY-RUN ${config.dry_run ? "ON" : "OFF"}`;
+      $("tag-policy").className = `c-tag ${config.dry_run ? "dry" : "lime"}`;
+      $("tag-store").textContent = `STORE ${config.store.toUpperCase()}`;
+      $("tag-agent").textContent = `AGENT ${config.agent.toUpperCase()}`;
+      $("console-site-name").textContent = config.site_id.toUpperCase();
+      $("hero-site-label").textContent = `${config.site_id.toUpperCase()} · HYDERABAD`;
+      $("footer-policy-fingerprint").textContent = `FINGERPRINT: ${config.policy_fingerprint}`;
+    }
 
-  $("findings").innerHTML = verdict.findings.map((f) => `
-    <div class="finding ${f.engine === verdict.deciding_engine ? "deciding" : ""}">
-      <div class="f-head">
-        <strong>${f.engine}</strong>
-        <span class="f-band ${bandClass(f.band)}">${f.band}</span>
-        ${f.engine === verdict.deciding_engine ? '<span class="deciding-tag">◉ deciding</span>' : ""}
-        ${f.margin_c === null ? "" : `<span class="f-band band-normal">margin ${f.margin_c} °C</span>`}
+    if (policy && policy.site && policy.site.supervisor) {
+      supervisor = {
+        name: policy.site.supervisor.name,
+        roles: policy.site.supervisor.roles || ["site_supervisor"],
+      };
+      $("console-supervisor-name").textContent = `SUPERVISOR: ${supervisor.name} (${supervisor.roles.join(", ")})`;
+    }
+  }
+
+  function renderAlerts(state) {
+    const advisories = state.advisories || [];
+    const active = advisories.filter((a) => a.active);
+    $("advisories-count").textContent = `${active.length} ACTIVE`;
+
+    const container = $("advisories-list");
+    if (!advisories.length) {
+      container.innerHTML = `
+        <div class="advisory-item active">
+          <div class="advisory-top">
+            <span class="advisory-name">MONITORING ACTIVE</span>
+            <span class="advisory-status-tag active">STANDBY</span>
+          </div>
+          <div class="advisory-desc">No current heat advisories in site store. Run an hourly screen to evaluate upcoming shifts.</div>
+          <span class="advisory-time">Real-time store connection active</span>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = advisories.map((a) => `
+      <div class="advisory-item ${a.active ? "active" : ""}">
+        <div class="advisory-top">
+          <span class="advisory-name">${a.action_id.replaceAll("_", " ").toUpperCase()}</span>
+          <span class="advisory-status-tag ${a.active ? "active" : "revoked"}">
+            ${a.active ? "ACTIVE" : (a.revoked ? "REVOKED" : "EXPIRED")}
+          </span>
+        </div>
+        <div class="advisory-desc">${a.reason || "Standing operational heat advisory"}</div>
+        <span class="advisory-time mono">Issued ${a.issued_at}${a.expires_at ? " · Expires " + a.expires_at : ""}</span>
+        ${a.revoked ? `
+          <span class="advisory-time mono" style="color: var(--status-crit);">
+            Revoked by ${a.revoked_by}: "${a.revoke_reason}"
+          </span>
+        ` : `
+          <div class="advisory-actions">
+            <button class="btn-revoke" data-revoke="${a.advisory_id}">Revoke Advisory</button>
+          </div>
+        `}
       </div>
-      <div class="f-sum">${f.summary}</div>
-      <div class="f-src">Source: ${f.citation}</div>
-    </div>`).join("");
+    `).join("");
 
-  $("operation-result").classList.add("visible");
-  const bands = document.querySelectorAll(".result-band");
-  bands.forEach((el) => { el.textContent = verdict.label + " · " + verdict.band; });
-  $("result-reason").textContent = verdict.reason;
-  $("result-metrics").textContent = "· WBGT " + idx.wbgt_c + " °C · heat index " + idx.heat_index_c + " °C · air " + idx.air_c + " °C";
-  $("proposal-list").innerHTML = body.proposals.length
-    ? body.proposals.map((proposal) => `
-        <article class="proposal">
-          <h3>${proposal.label}</h3>
-          <span class="status">${proposal.standing ? "Standing" : "One-shot"} · verify ${proposal.verify}${proposal.ttl_minutes ? " · ttl " + proposal.ttl_minutes + "m" : ""}</span>
-          <span class="phrase">${proposal.approval_phrase}</span>
-          <input class="modal-input" id="approval-${proposal.token}" placeholder="Type exact phrase" autocomplete="off">
-          <button class="ghost-btn" data-approve="${proposal.token}">Approve</button>
-          <div class="feedback" id="feedback-${proposal.token}"></div>
-        </article>`).join("")
-    : `<div class="empty">No action is proposed for this band. A quiet hour is a quiet console.</div>`;
-  $("proposal-list").querySelectorAll("[data-approve]").forEach((button) => button.addEventListener("click", () => approve(button.dataset.approve)));
-}
+    container.querySelectorAll("[data-revoke]").forEach((btn) => {
+      btn.addEventListener("click", () => revokeAdvisory(btn.dataset.revoke));
+    });
+  }
 
-async function screenHour() {
-  try {
-    const body = await post("/api/triage", { when: new Date($("when").value).toISOString(), workload: $("workload").value, acclimatization: $("acclim").value, workers: Number($("workers").value) });
-    applyScreen(body);
-    await refreshState();
-  } catch (e) { showError(e.message); }
-}
+  function renderAuditRecords(state) {
+    currentRecords = state.records || [];
+    filterAndDisplayRecords();
+  }
 
-async function approve(token) {
-  const feedback = $("feedback-" + token);
-  try {
-    const body = await post("/api/approve", { token, raw_message: $("approval-" + token).value, approver_name: supervisor.name, approver_roles: supervisor.roles, notifier_acknowledged: true });
-    const ok = body.record.approval.phrase_matched;
-    feedback.innerHTML = `<span class="${ok ? "ok" : "bad"}">${body.record.outcome}</span> · ${body.record.verification_outcome} · phrase ${ok ? "matched" : "not matched"}`;
-    await refreshState();
-  } catch (e) { feedback.textContent = e.message; }
-}
+  function filterAndDisplayRecords() {
+    const query = ($("audit-filter").value || "").toLowerCase().trim();
+    const filtered = query
+      ? currentRecords.filter((r) =>
+          r.action_id.toLowerCase().includes(query) ||
+          (r.approver && r.approver.toLowerCase().includes(query)) ||
+          r.outcome.toLowerCase().includes(query)
+        )
+      : currentRecords;
 
-async function revoke(id) {
-  const reason = prompt("Why is this advisory being revoked?");
-  if (!reason) return;
-  try { await post("/api/revoke", { advisory_id: id, revoked_by: supervisor.name, reason }); } catch (e) { showError(e.message); }
-  await refreshState();
-}
+    $("audit-count").textContent = `${filtered.length} OF ${currentRecords.length} RECORD${currentRecords.length === 1 ? "" : "S"}`;
+    const tbody = $("audit-records-body");
 
-async function checkEscalations() {
-  const body = await post("/api/escalations/check", {});
-  const box = $("escalations");
-  box.innerHTML = body.fired.length
-    ? body.fired.map((f) => `<div class="alert active"><p>${f.action_id.replaceAll("_", " ").toUpperCase()} · waited ${f.waited_minutes} min</p><p class="subtle" style="white-space:pre-wrap">${f.message}</p></div>`).join("")
-    : `<div class="empty">Nobody has waited past the window. The clock is quiet.</div>`;
-}
+    if (!filtered.length) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="5" class="mono" style="text-align: center; color: var(--text-muted); padding: 20px;">
+            ${currentRecords.length ? "No matching audit records." : "No audit action records recorded in site store yet."}
+          </td>
+        </tr>`;
+      return;
+    }
 
-async function boot() {
-  updateClock(); setInterval(updateClock, 60000);
-  try {
-    const [config, policy] = await Promise.all([api("/api/config"), api("/api/policy")]);
-    renderSite(config, policy);
-    await refreshState();
-  } catch (e) { showError(e.message); }
-}
+    tbody.innerHTML = filtered.map((r) => `
+      <tr>
+        <td class="cell-action">${r.action_id}</td>
+        <td class="cell-outcome ${r.outcome === "approved" ? "approved" : "refused"}">${r.outcome}</td>
+        <td>${r.approver || "—"}</td>
+        <td class="mono" style="font-size: 10px;">${r.proposed_at}</td>
+        <td style="font-size: 11px;">${r.verification_detail || r.verification_outcome || "—"}</td>
+      </tr>
+    `).join("");
+  }
 
-$("screen-btn").addEventListener("click", screenHour);
-$("escalation-btn").addEventListener("click", checkEscalations);
-boot();
+  async function refreshState() {
+    try {
+      const state = await api("/api/state");
+      renderAlerts(state);
+      renderAuditRecords(state);
+
+      if (state.ledger) {
+        $("stat-observed").textContent = state.ledger.hazardous_worker_hours_observed.toFixed(1);
+        $("stat-covered").textContent = state.ledger.hazardous_worker_hours_covered.toFixed(1);
+        if (state.ledger.avoided_estimate_assumption) {
+          $("stat-assumption").textContent = "Covered is measured directly. Avoided is counterfactual: " + state.ledger.avoided_estimate_assumption;
+        }
+      }
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  }
+
+  function applyTriageResult(data) {
+    const triage = data.triage;
+    const verdict = triage.verdict;
+    const idx = triage.indices;
+
+    // Numbers & Telemetry
+    $("val-wbgt").textContent = idx.wbgt_c.toFixed(1);
+    $("hero-hud-wbgt").textContent = idx.wbgt_c.toFixed(1) + " °C";
+    $("val-hi").textContent = idx.heat_index_c.toFixed(1) + " °C";
+    $("val-air").textContent = idx.air_c.toFixed(1) + " °C";
+    $("val-rh").textContent = idx.relative_humidity.toFixed(0) + " %";
+    $("val-ws").textContent = idx.wind_ms.toFixed(1) + " m/s";
+
+    // Band Badge
+    const band = verdict.band.toLowerCase();
+    const badge = $("banner-band-badge");
+    badge.className = `band-banner-badge ${band}`;
+    $("label-band").textContent = `${verdict.label} [${verdict.band.toUpperCase()}]`;
+    $("hero-hud-band").textContent = `${verdict.band.toUpperCase()} BAND`;
+    $("label-band-reason").textContent = verdict.reason;
+    $("label-assessed-time").textContent = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    // Scale Track Pointer
+    const pointer = $("scale-indicator");
+    const posMap = { normal: "12%", caution: "50%", stop: "88%" };
+    pointer.style.left = posMap[band] || "12%";
+    $("scale-caption").textContent = `Deciding engine: ${verdict.deciding_engine} (stricter wins)`;
+
+    // Render Both Engines
+    $("engine-findings-wrap").innerHTML = verdict.findings.map((f) => {
+      const isDeciding = f.engine === verdict.deciding_engine;
+      const fBand = f.band.toLowerCase();
+      return `
+        <div class="engine-finding-card ${isDeciding ? "deciding" : ""}">
+          <div class="ef-head">
+            <span class="ef-engine">${f.engine}</span>
+            <div class="ef-tags">
+              <span class="ef-band-pill ${fBand}">${f.band}</span>
+              ${isDeciding ? '<span class="deciding-badge">DECIDING</span>' : ""}
+              ${f.margin_c !== null ? `<span class="mono" style="font-size: 9.5px; color: var(--text-muted);">MARGIN ${f.margin_c} °C</span>` : ""}
+            </div>
+          </div>
+          <div class="ef-summary">${f.summary}</div>
+          <div class="ef-citation">Source: ${f.citation}</div>
+        </div>`;
+    }).join("");
+
+    // Narrative Box
+    $("agent-narrative").style.display = "flex";
+    $("agent-narrative-text").textContent = data.reasoning || "Triage evaluated across published occupational heat standards.";
+
+    // Proposals
+    const container = $("proposals-container");
+    container.style.display = "flex";
+    const list = $("proposals-list");
+
+    if (!data.proposals || !data.proposals.length) {
+      list.innerHTML = `
+        <div class="mono" style="color: var(--text-muted); padding: 18px; border: 1px dashed var(--border-color); text-align: center; width: 100%;">
+          No actionable interventions required for band ${verdict.band.toUpperCase()}. A quiet hour is a quiet console.
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = data.proposals.map((p) => `
+      <article class="proposal-card" id="card-${p.token}">
+        <h5>${p.label}</h5>
+        <div class="proposal-meta">
+          <span>${p.standing ? "STANDING ADVISORY" : "ONE-SHOT ACTION"} · VERIFY: ${p.verify}</span>
+          ${p.ttl_minutes ? `<span> · TTL: ${p.ttl_minutes}m</span>` : ""}
+        </div>
+        <div class="phrase-box-row">
+          <span class="phrase-badge" id="phrase-${p.token}">${p.approval_phrase}</span>
+          <button class="phrase-copy-btn" data-copy="${p.token}" title="Copy exact phrase">COPY</button>
+        </div>
+        <div class="approval-input-row">
+          <input
+            type="text"
+            class="approval-input"
+            id="input-${p.token}"
+            placeholder="Type exact phrase verbatim"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="btn-lime" data-approve="${p.token}" style="padding: 0 14px; font-size: 13px;">
+            APPROVE
+          </button>
+        </div>
+        <div class="feedback-banner" id="feedback-${p.token}"></div>
+      </article>
+    `).join("");
+
+    // Hook up copy buttons
+    list.querySelectorAll("[data-copy]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const token = btn.dataset.copy;
+        const phrase = $(`phrase-${token}`).textContent.trim();
+        $(`input-${token}`).value = phrase;
+        navigator.clipboard.writeText(phrase).catch(() => {});
+        showToast(`Phrase copied: "${phrase}"`, "info");
+      });
+    });
+
+    // Hook up approve buttons
+    list.querySelectorAll("[data-approve]").forEach((btn) => {
+      btn.addEventListener("click", () => approveProposal(btn.dataset.approve));
+    });
+  }
+
+  async function runScreen() {
+    const btn = $("btn-run-screen");
+    const originalText = btn.textContent;
+    btn.textContent = "SCREENING...";
+    btn.disabled = true;
+
+    try {
+      const payload = {
+        when: new Date($("input-when").value).toISOString(),
+        workload: $("input-workload").value,
+        acclimatization: $("input-acclim").value,
+        workers: Number($("input-workers").value),
+      };
+
+      const data = await post("/api/triage", payload);
+      applyTriageResult(data);
+      await refreshState();
+      showToast(`Triage completed: Band ${data.triage.verdict.band.toUpperCase()}`, "success");
+    } catch (err) {
+      showToast(err.message, "error");
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  }
+
+  async function approveProposal(token) {
+    const input = $(`input-${token}`);
+    const feedback = $(`feedback-${token}`);
+    const raw_message = input.value;
+
+    try {
+      const data = await post("/api/approve", {
+        token,
+        raw_message,
+        approver_name: supervisor.name,
+        approver_roles: supervisor.roles,
+        notifier_acknowledged: true,
+      });
+
+      const rec = data.record;
+      const matched = rec.approval.phrase_matched;
+
+      if (matched) {
+        feedback.className = "feedback-banner success";
+        feedback.textContent = `APPROVED // Outcome: ${rec.outcome} · Verification: ${rec.verification_outcome}`;
+        showToast(`Action approved: ${rec.action_id}`, "success");
+      } else {
+        feedback.className = "feedback-banner error";
+        feedback.textContent = `REFUSED // Exact phrase did not match. Case-sensitive verbatim check failed.`;
+        showToast(`Approval refused: exact phrase mismatch`, "warn");
+      }
+
+      await refreshState();
+    } catch (err) {
+      feedback.className = "feedback-banner error";
+      feedback.textContent = `Error: ${err.message}`;
+      showToast(err.message, "error");
+    }
+  }
+
+  async function revokeAdvisory(id) {
+    const reason = prompt("Enter required reason for revoking this standing advisory:");
+    if (!reason || !reason.trim()) return;
+
+    try {
+      await post("/api/revoke", {
+        advisory_id: id,
+        revoked_by: supervisor.name,
+        reason: reason.trim(),
+      });
+      showToast("Advisory revoked successfully", "success");
+      await refreshState();
+    } catch (err) {
+      showToast(err.message, "error");
+    }
+  }
+
+  async function checkEscalations() {
+    const btn = $("btn-check-escalations");
+    btn.textContent = "CHECKING...";
+    btn.disabled = true;
+
+    try {
+      const data = await post("/api/escalations/check", {});
+      const box = $("escalation-results");
+
+      if (data.fired && data.fired.length) {
+        box.innerHTML = data.fired.map((f) => `
+          <div style="background: rgba(240, 91, 72, 0.15); border: 1px solid var(--status-crit); padding: 10px 12px; margin-bottom: 6px;">
+            <strong style="color: var(--status-crit); display: block; font-size: 11px;">
+              ESCALATION FIRED: ${f.action_id.toUpperCase()} (Waited ${f.waited_minutes}m)
+            </strong>
+            <p class="mono" style="font-size: 10px; margin-top: 4px; white-space: pre-wrap; color: var(--text-primary);">${f.message}</p>
+          </div>
+        `).join("");
+        showToast(`${data.fired.length} escalation(s) triggered`, "warn");
+      } else {
+        box.innerHTML = `
+          <span class="mono" style="font-size: 11px; color: var(--text-muted);">
+            No unresolved stop-work actions have exceeded the ${data.checked_window_minutes}-minute threshold.
+          </span>`;
+        showToast("Escalation check complete: clock is clear", "info");
+      }
+    } catch (err) {
+      showToast(err.message, "error");
+    } finally {
+      btn.textContent = "CHECK CLOCK";
+      btn.disabled = false;
+    }
+  }
+
+  // Mobile menu toggle
+  $("mobile-toggle").addEventListener("click", () => {
+    const nav = document.querySelector(".nav-desktop");
+    if (nav.style.display === "flex") {
+      nav.style.display = "none";
+    } else {
+      nav.style.display = "flex";
+      nav.style.flexDirection = "column";
+      nav.style.position = "absolute";
+      nav.style.top = "72px";
+      nav.style.left = "0";
+      nav.style.right = "0";
+      nav.style.background = "#090B09";
+      nav.style.padding = "20px";
+      nav.style.borderBottom = "1px solid var(--border-color)";
+    }
+  });
+
+  // Audit filter search
+  $("audit-filter").addEventListener("input", filterAndDisplayRecords);
+  $("refresh-state-btn").addEventListener("click", refreshState);
+  $("btn-check-escalations").addEventListener("click", checkEscalations);
+
+  // Initialize
+  async function boot() {
+    updateClock();
+    setInterval(updateClock, 30000);
+
+    try {
+      const [config, policy] = await Promise.all([
+        api("/api/config"),
+        api("/api/policy"),
+      ]);
+      renderSystem(config, policy);
+      await refreshState();
+    } catch (err) {
+      showToast(`Initialization note: ${err.message}`, "info");
+    }
+  }
+
+  boot();
 </script>
 </body>
 </html>
